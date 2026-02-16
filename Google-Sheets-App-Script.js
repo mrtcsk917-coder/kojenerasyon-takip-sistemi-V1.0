@@ -114,6 +114,26 @@ function saveRecord(sheet, data) {
     // Headers'ı kontrol et
     const headers = getHeaders(sheet);
     
+    // Aynı tarihli veri kontrolü
+    if (data.date) {
+      const existingData = sheet.getDataRange().getValues();
+      const dateColumnIndex = headers.indexOf('Tarih');
+      
+      if (dateColumnIndex !== -1 && existingData.length > 1) {
+        // Header hariç diğer satırları kontrol et
+        for (let i = 1; i < existingData.length; i++) {
+          const existingDate = existingData[i][dateColumnIndex];
+          if (existingDate && existingDate.toString() === data.date) {
+            return {
+              success: false,
+              error: 'Bu tarihte zaten kayıt mevcut: ' + data.date + '. Aynı tarihte birden fazla kayıt yapılamaz.',
+              existingDate: existingDate.toString()
+            };
+          }
+        }
+      }
+    }
+    
     // Yeni satır olarak ekle (header ve data eşleşmesi)
     const newRow = [];
     headers.forEach(header => {
