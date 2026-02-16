@@ -75,15 +75,13 @@ const BuharVerileri = {
      */
     updateDateTime: function() {
         const now = new Date();
-        const options = {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        };
-        const dateTimeString = now.toLocaleDateString('tr-TR', options);
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const dateTimeString = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
         
         // Buhar sayfası
         const dateTimeElement = document.getElementById('current-datetime');
@@ -272,7 +270,24 @@ const BuharVerileri = {
      */
     formatDate: function(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleDateString('tr-TR');
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    },
+    
+    /**
+     * Tarih ve saat formatla
+     */
+    formatDateTime: function(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
     },
     
     /**
@@ -369,7 +384,7 @@ const BuharVerileri = {
                 'Buhar Miktarı (ton)': record.amount,
                 'Notlar': record.notes,
                 'Kaydeden': record.recordedBy,
-                'Kayıt Zamanı': new Date(record.timestamp).toLocaleString('tr-TR')
+                'Kayıt Zamanı': this.formatDateTime(record.timestamp)
             }));
             
             // Excel dosyası oluştur

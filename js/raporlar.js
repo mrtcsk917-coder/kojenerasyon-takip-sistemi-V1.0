@@ -42,7 +42,9 @@ const Raporlar = {
     },
 
     createDemoReport: function(month, year) {
-        const ayAdi = new Date(year, month - 1).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+        const date = new Date(year, month - 1);
+        const monthName = date.toLocaleDateString('tr-TR', { month: 'long' });
+        const ayAdi = `${monthName} ${year}`;
         
         // Motor bazli uretim verileri (demo)
         const motorUretim = {

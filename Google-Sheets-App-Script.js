@@ -69,20 +69,16 @@ function doPost(e) {
         result = { success: false, error: 'Bilinmeyen işlem: ' + action };
     }
     
-    output.setContent(JSON.stringify(result));
-    return output;
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
     Logger.log('Hata: ' + error.toString());
-    
-    const errorOutput = ContentService.createTextOutput();
-    errorOutput.setMimeType(ContentService.MimeType.JSON);
-    errorOutput.setContent(JSON.stringify({
+    return ContentService.createTextOutput(JSON.stringify({
       success: false,
       error: error.toString(),
       timestamp: new Date().toISOString()
-    }));
-    return errorOutput;
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 

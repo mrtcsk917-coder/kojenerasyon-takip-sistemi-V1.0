@@ -14,19 +14,18 @@ const Dashboard = {
     },
 
     /**
-     * Tarih güncelle
+     * Dashboard tarihini güncelle
      */
-    updateDate: function() {
-        const dateEl = document.getElementById('current-date');
+    updateDashboardDate: function() {
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const monthName = now.toLocaleDateString('tr-TR', { month: 'long' });
+        
+        const dateEl = document.getElementById('dashboard-date');
         if (dateEl) {
-            const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            };
-            dateEl.textContent = now.toLocaleDateString('tr-TR', options);
+            dateEl.textContent = `${day} ${monthName} ${year}`;
         }
     },
 
