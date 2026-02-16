@@ -28,14 +28,7 @@ function doPost(e) {
     
     // Sheet isimlerini belirle
     const sheetNames = {
-      buhar: 'BuharVerileri',
-      kojen_motor: 'KojenMotorVerileri',
-      kojen_enerji: 'KojenEnerjiVerileri',
-      saatlik: 'SaatlikVeriler',
-      gunluk_enerji: 'GunlukEnerjiVerileri',
-      vardiya: 'VardiyaVerileri',
-      bakim: 'BakimVerileri',
-      ariza: 'ArizaVerileri'
+      buhar: 'BuharVerileri'
     };
     
     const sheetName = sheetNames[module] || 'Veriler';

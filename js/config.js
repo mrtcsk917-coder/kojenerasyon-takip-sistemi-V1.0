@@ -105,18 +105,19 @@ const CONFIG = {
     
     // Google Sheets Web App URL'leri (API Key gerekmez)
     GOOGLE_SHEETS_WEB_APP_URLS: {
-        buhar: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
-        kojen_motor: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
-        kojen_enerji: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
-        saatlik: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
-        gunluk_enerji: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
-        vardiya: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
-        bakim: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
-        ariza: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec'
+        buhar: 'https://script.google.com/macros/s/AKfycbxkVP4fXfCkHW38AaTeOYUhwQp_AwDThL43_VPjWue-IGql2E75mgceEt7Du1qojwVQ/exec'
+        // Diğer modüller geçici olarak devre dışı
+        // kojen_motor: 'URL',
+        // kojen_enerji: 'URL',
+        // saatlik: 'URL',
+        // gunluk_enerji: 'URL',
+        // vardiya: 'URL',
+        // bakim: 'URL',
+        // ariza: 'URL'
     },
     
     // Geriye dönük uyumluluk için eski URL
-    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec'
+    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbxkVP4fXfCkHW38AaTeOYUhwQp_AwDThL43_VPjWue-IGql2E75mgceEt7Du1qojwVQ/exec'
 };
 
 // Config'i global olarak erisilebilir yap
