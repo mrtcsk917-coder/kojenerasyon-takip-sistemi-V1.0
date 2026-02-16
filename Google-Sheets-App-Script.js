@@ -112,10 +112,36 @@ function saveRecord(sheet, data) {
     // Headers'ı kontrol et
     const headers = getHeaders(sheet);
     
-    // Yeni satır olarak ekle
+    // Yeni satır olarak ekle (header ve data eşleşmesi)
     const newRow = [];
     headers.forEach(header => {
-      newRow.push(data[header] || '');
+      let value = '';
+      
+      // Header ve data eşleşmesi
+      switch(header) {
+        case 'Tarih':
+          value = data.date || '';
+          break;
+        case 'Saat':
+          value = data.time || '';
+          break;
+        case 'Buhar Miktarı (ton)':
+          value = data.amount || '';
+          break;
+        case 'Notlar':
+          value = data.notes || '';
+          break;
+        case 'Kaydeden':
+          value = data.recordedBy || '';
+          break;
+        case 'Kayıt Zamanı':
+          value = data.timestamp || new Date().toISOString();
+          break;
+        default:
+          value = data[header] || '';
+      }
+      
+      newRow.push(value);
     });
     
     sheet.appendRow(newRow);
