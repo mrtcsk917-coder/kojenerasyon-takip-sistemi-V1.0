@@ -41,10 +41,22 @@ function doPost(e) {
       
       // Buhar verileri için header'ları oluştur
       if (module === 'buhar') {
-        const headers = ['Tarih', 'Saat', 'Buhar Miktarı (ton)', 'Notlar', 'Kaydeden', 'Kayıt Zamanı'];
-        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-        sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
-        sheet.autoResizeColumns(1, headers.length);
+        // Manuel olarak header'ları ekle
+        sheet.getRange("A1").setValue("Tarih");
+        sheet.getRange("B1").setValue("Saat");
+        sheet.getRange("C1").setValue("Buhar Miktarı (ton)");
+        sheet.getRange("D1").setValue("Notlar");
+        sheet.getRange("E1").setValue("Kaydeden");
+        sheet.getRange("F1").setValue("Kayıt Zamanı");
+        
+        // Formatla
+        sheet.getRange("A1:F1").setFontWeight("bold");
+        sheet.autoResizeColumn(1);
+        sheet.autoResizeColumn(2);
+        sheet.autoResizeColumn(3);
+        sheet.autoResizeColumn(4);
+        sheet.autoResizeColumn(5);
+        sheet.autoResizeColumn(6);
       }
     }
     
