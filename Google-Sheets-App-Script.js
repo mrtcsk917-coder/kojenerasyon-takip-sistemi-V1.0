@@ -33,7 +33,20 @@ function doPost(e) {
     
     const sheetName = sheetNames[module] || 'Veriler';
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName(sheetName) || ss.insertSheet(sheetName);
+    let sheet = ss.getSheetByName(sheetName);
+    
+    // Sheet yoksa oluştur ve header'ları ekle
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      
+      // Buhar verileri için header'ları oluştur
+      if (module === 'buhar') {
+        const headers = ['Tarih', 'Saat', 'Buhar Miktarı (ton)', 'Notlar', 'Kaydeden', 'Kayıt Zamanı'];
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+        sheet.autoResizeColumns(1, headers.length);
+      }
+    }
     
     let result;
     
