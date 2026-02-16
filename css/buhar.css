@@ -1,0 +1,494 @@
+/**
+ * KOJENERASYON TAKIP SISTEMI - BUHAR VERILERI CSS
+ * Buhar verileri sayfası stil dosyası
+ */
+
+/* ===== BUHAR VERILERI SAYFA GENEL ===== */
+#buhar-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+#buhar-page .page-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#buhar-page .page-header h1 {
+    color: #4a5568;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#buhar-page .header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* ===== BUHAR FORM KONTAINER ===== */
+.steam-form-container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 2rem;
+}
+
+.steam-form-container .form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.steam-form-container .form-header h3 {
+    color: #2d3748;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.date-time-info {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== FORM GRUPLARI ===== */
+#steam-form .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+#steam-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+#steam-form .form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+#steam-form label {
+    color: #4a5568;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#steam-form label::before {
+    content: '💨';
+    font-size: 1rem;
+}
+
+#steam-form input[type="date"],
+#steam-form input[type="time"],
+#steam-form input[type="number"],
+#steam-form textarea {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    color: #2d3748;
+}
+
+#steam-form input:focus,
+#steam-form textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: white;
+}
+
+#steam-form textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+/* ===== FORM BUTONLARI ===== */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px solid #e2e8f0;
+}
+
+.form-actions button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.form-actions .btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.form-actions .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.form-actions .btn-secondary {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.form-actions .btn-secondary:hover {
+    background: #cbd5e0;
+    transform: translateY(-1px);
+}
+
+/* ===== VERI BÖLÜMÜ ===== */
+.data-section {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.section-header h3 {
+    color: #2d3748;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.record-count {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(72, 187, 120, 0.3);
+}
+
+.btn-small {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #4299e1, #3182ce);
+    color: white;
+    box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+}
+
+.btn-small:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+}
+
+/* ===== BUHAR TABLOSU ===== */
+.steam-table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.steam-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.9rem;
+}
+
+.steam-table thead {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.steam-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    white-space: nowrap;
+}
+
+.steam-table tbody tr {
+    border-bottom: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.steam-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: scale(1.01);
+}
+
+.steam-table tbody tr.even-row {
+    background: rgba(248, 250, 252, 0.5);
+}
+
+.steam-table td {
+    padding: 0.75rem 1rem;
+    border: none;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.steam-table td.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.steam-table .btn-edit,
+.steam-table .btn-delete {
+    padding: 0.4rem 0.6rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+}
+
+.steam-table .btn-edit {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+}
+
+.steam-table .btn-edit:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(72, 187, 120, 0.4);
+}
+
+.steam-table .btn-delete {
+    background: linear-gradient(135deg, #f56565, #e53e3e);
+    color: white;
+}
+
+.steam-table .btn-delete:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(245, 101, 101, 0.4);
+}
+
+/* ===== NO DATA MESSAGE ===== */
+.no-data-message {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #718096;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    border: 2px dashed #cbd5e0;
+}
+
+.no-data-message p {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.no-data-message p:first-child {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* ===== RESPONSIVE TASARIM ===== */
+@media (max-width: 768px) {
+    #buhar-page .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    #buhar-page .page-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .steam-form-container .form-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    #steam-form .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .steam-table-container {
+        font-size: 0.8rem;
+    }
+    
+    .steam-table th,
+    .steam-table td {
+        padding: 0.5rem;
+    }
+    
+    .steam-table td.action-buttons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .steam-form-container {
+        padding: 1rem;
+    }
+    
+    .data-section {
+        padding: 1rem;
+    }
+    
+    .form-actions button {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .steam-table {
+        font-size: 0.7rem;
+    }
+    
+    .steam-table th,
+    .steam-table td {
+        padding: 0.3rem 0.5rem;
+    }
+}
+
+/* ===== ANIMASYONLAR ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.steam-form-container,
+.data-section {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.steam-row {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* ===== LOADING STATE ===== */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== TOOLTIP ===== */
+.tooltip {
+    position: relative;
+}
+
+.tooltip::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.tooltip:hover::before {
+    opacity: 1;
+}

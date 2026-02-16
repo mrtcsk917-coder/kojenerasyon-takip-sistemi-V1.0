@@ -1,0 +1,416 @@
+/* ===== KOJEN ENERJİ VERİLERİ STİLLERİ ===== */
+
+/* Page Layout */
+#kojen-enerji-page .content-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 20px;
+    height: calc(100vh - 120px);
+    overflow: hidden;
+}
+
+#kojen-enerji-page .form-section {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Page Header */
+#kojen-enerji-page .page-header {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Header Left Section */
+#kojen-enerji-page .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Header Right Section */
+#kojen-enerji-page .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Date Input Group */
+#kojen-enerji-page .date-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+#kojen-enerji-page .date-input-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+#kojen-enerji-page .date-input-group input[type="date"] {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    color: #059669;
+    font-size: 0.9rem;
+}
+
+/* Header Actions */
+#kojen-enerji-page .header-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Date Time Info */
+#kojen-enerji-page .date-time-info {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+}
+
+/* Kojen Enerji Table Container */
+.kojen-enerji-table-container {
+    flex: 1;
+    overflow: hidden;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+/* Table Header */
+.kojen-enerji-table-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, var(--header-bg, #059669), #10b981);
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Table Body */
+.kojen-enerji-table-body {
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: calc(100vh - 220px);
+}
+
+/* Table Row */
+.kojen-enerji-table-row {
+    display: grid;
+    grid-template-columns: 80px repeat(11, 1fr);
+    min-width: 1100px;
+    gap: 1px;
+    background: var(--border-color);
+}
+
+/* Table Cell */
+.kojen-enerji-table-cell {
+    background: var(--card-bg);
+    padding: 8px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border-right: 1px solid var(--border-color);
+    min-height: 40px;
+}
+
+/* Header Cell */
+.kojen-enerji-table-cell.header-cell {
+    background: var(--header-bg, #059669);
+    color: white;
+    font-weight: 600;
+    font-size: 11px;
+    text-align: center;
+    padding: 10px 6px;
+    line-height: 1.2;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+/* Sticky Column */
+.kojen-enerji-table-cell.sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    background: var(--header-bg, #059669);
+    color: white;
+    font-weight: 600;
+    border-right: 2px solid #10b981;
+}
+
+/* Input Styles */
+.kojen-enerji-input {
+    width: 100%;
+    padding: 6px 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 11px;
+    text-align: center;
+    transition: all 0.2s ease;
+    min-height: 28px;
+}
+
+.kojen-enerji-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    background: var(--bg-secondary);
+}
+
+.kojen-enerji-input:hover {
+    border-color: #059669;
+}
+
+/* Hour Cell */
+.kojen-enerji-table-cell.hour-cell {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 12px;
+    position: sticky;
+    left: 0;
+    z-index: 15;
+    border-right: 2px solid #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Row Hover Effect */
+.kojen-enerji-table-row:hover .kojen-enerji-table-cell:not(.header-cell):not(.sticky-col) {
+    background: var(--bg-secondary);
+}
+
+.kojen-enerji-table-row:hover .kojen-enerji-table-cell.hour-cell {
+    background: #10b981;
+    color: white;
+}
+
+/* Button Styles */
+#kojen-enerji-page .btn-primary {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#kojen-enerji-page .btn-primary:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+#kojen-enerji-page .btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#kojen-enerji-page .btn-secondary:hover {
+    background: var(--bg-secondary);
+    transform: translateY(-1px);
+    border-color: #10b981;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+    .kojen-enerji-table-row {
+        grid-template-columns: 70px repeat(11, 1fr);
+        min-width: 900px;
+    }
+    
+    .kojen-enerji-table-cell {
+        padding: 6px 4px;
+        font-size: 11px;
+    }
+    
+    .kojen-enerji-table-cell.header-cell {
+        font-size: 10px;
+        padding: 8px 4px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .kojen-enerji-table-row {
+        grid-template-columns: 60px repeat(11, 1fr);
+        min-width: 800px;
+    }
+    
+    .kojen-enerji-table-cell {
+        padding: 4px 2px;
+        font-size: 10px;
+    }
+    
+    .kojen-enerji-table-cell.header-cell {
+        font-size: 9px;
+        padding: 6px 2px;
+    }
+    
+    .kojen-enerji-input {
+        font-size: 10px;
+        padding: 4px 2px;
+        min-height: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    #kojen-enerji-page .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+    
+    #kojen-enerji-page .header-left {
+        align-items: center;
+    }
+    
+    #kojen-enerji-page .header-right {
+        flex-direction: column;
+        width: 100%;
+        gap: 12px;
+    }
+    
+    #kojen-enerji-page .header-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .kojen-enerji-table-row {
+        grid-template-columns: 50px repeat(11, 1fr);
+        min-width: 700px;
+    }
+    
+    .kojen-enerji-table-cell.header-cell {
+        font-size: 8px;
+        padding: 4px 1px;
+        line-height: 1.1;
+    }
+    
+    .kojen-enerji-input {
+        font-size: 9px;
+        padding: 2px 1px;
+        min-height: 20px;
+    }
+}
+
+/* Scroll Styling */
+.kojen-enerji-table-body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.kojen-enerji-table-body::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+}
+
+.kojen-enerji-table-body::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 4px;
+}
+
+.kojen-enerji-table-body::-webkit-scrollbar-thumb:hover {
+    background: #059669;
+}
+
+/* Loading State */
+.kojen-enerji-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.kojen-enerji-loading .btn-primary {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+/* Success State */
+.kojen-enerji-success {
+    border-color: var(--success-color);
+    box-shadow: 0 0 0 2px rgba(6, 214, 160, 0.2);
+}
+
+/* Error State */
+.kojen-enerji-error {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 2px rgba(239, 71, 111, 0.2);
+}
+
+.kojen-enerji-input.error {
+    border-color: var(--danger-color);
+    background: rgba(239, 71, 111, 0.05);
+}
+
+/* Special Input Types */
+.kojen-enerji-input.voltage {
+    background: linear-gradient(135deg, var(--input-bg), rgba(16, 185, 129, 0.05));
+}
+
+.kojen-enerji-input.power {
+    background: linear-gradient(135deg, var(--input-bg), rgba(67, 97, 238, 0.05));
+}
+
+.kojen-enerji-input.current {
+    background: linear-gradient(135deg, var(--input-bg), rgba(251, 146, 60, 0.05));
+}
+
+.kojen-enerji-input.energy {
+    background: linear-gradient(135deg, var(--input-bg), rgba(163, 230, 53, 0.05));
+}
+
+.kojen-enerji-input.cosphi {
+    background: linear-gradient(135deg, var(--input-bg), rgba(168, 85, 247, 0.05));
+}
+
+.kojen-enerji-input.hours {
+    background: linear-gradient(135deg, var(--input-bg), rgba(236, 72, 153, 0.05));
+}
+
+.kojen-enerji-input.count {
+    background: linear-gradient(135deg, var(--input-bg), rgba(14, 165, 233, 0.05));
+}

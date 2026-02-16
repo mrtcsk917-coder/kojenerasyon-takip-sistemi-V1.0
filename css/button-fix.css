@@ -1,0 +1,91 @@
+/* ===== BUTON YAZI RENGİ FİKSİ ===== */
+/* TÜM butonlar için beyaz yazı garanti et */
+
+/* Önce tüm buton selector'larını topla */
+.btn-primary,
+.btn-secondary,
+.btn-save,
+.btn-delete,
+.btn-reset,
+.btn-small,
+.btn-icon,
+.motor-toggle-btn,
+.motor-toggle-btn-header,
+.motor-toggle,
+.refresh-btn,
+.theme-toggle,
+#logout-btn,
+#save-hourly-btn,
+#save-all-btn,
+#save-daily-energy,
+.energy-save-btn,
+.login-btn {
+    color: rgb(15, 1, 1) !important;
+    font-weight: 600;
+}
+
+/* İkonları da beyaz yap */
+.btn-primary i,
+.btn-secondary i,
+.btn-save i,
+.btn-delete i,
+.btn-reset i,
+.btn-small i,
+.btn-icon i,
+.motor-toggle-btn i,
+.motor-toggle-btn-header i,
+.motor-toggle i,
+.refresh-btn i,
+.theme-toggle i,
+#logout-btn i,
+#save-hourly-btn i,
+#save-all-btn i,
+#save-daily-energy i,
+.energy-save-btn i,
+.login-btn i {
+    color: rgb(26, 1, 1) !important;
+}
+
+/* Koyu tema için hafif gri yap */
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-save,
+[data-theme="dark"] .btn-delete,
+[data-theme="dark"] .btn-reset,
+[data-theme="dark"] .btn-small,
+[data-theme="dark"] .btn-icon,
+[data-theme="dark"] .motor-toggle-btn,
+[data-theme="dark"] .motor-toggle-btn-header,
+[data-theme="dark"] .motor-toggle,
+[data-theme="dark"] .refresh-btn,
+[data-theme="dark"] .theme-toggle,
+[data-theme="dark"] #logout-btn,
+[data-theme="dark"] #save-hourly-btn,
+[data-theme="dark"] #save-all-btn,
+[data-theme="dark"] #save-daily-energy,
+[data-theme="dark"] .energy-save-btn,
+[data-theme="dark"] .login-btn {
+    color: #f1f5f9 !important;
+}
+
+/* Koyu tema ikonlar */
+[data-theme="dark"] .btn-primary i,
+[data-theme="dark"] .btn-secondary i,
+[data-theme="dark"] .btn-save i,
+[data-theme="dark"] .btn-delete i,
+[data-theme="dark"] .btn-reset i,
+[data-theme="dark"] .btn-small i,
+[data-theme="dark"] .btn-icon i,
+[data-theme="dark"] .motor-toggle-btn i,
+[data-theme="dark"] .motor-toggle-btn-header i,
+[data-theme="dark"] .motor-toggle i,
+[data-theme="dark"] .refresh-btn i,
+[data-theme="dark"] .theme-toggle i,
+[data-theme="dark"] #logout-btn i,
+[data-theme="dark"] #save-hourly-btn i,
+[data-theme="dark"] #save-all-btn i,
+[data-theme="dark"] #save-daily-energy i,
+[data-theme="dark"] .energy-save-btn i,
+[data-theme="dark"] .login-btn i {
+    color: #f1f5f9 !important;
+}
