@@ -13,6 +13,10 @@
 
 function doPost(e) {
   try {
+    // CORS header'ları ekle
+    const output = ContentService.createTextOutput();
+    output.setMimeType(ContentService.MimeType.JSON);
+    
     const data = JSON.parse(e.postData.contents);
     const action = data.action;
     const module = data.module;
@@ -65,16 +69,20 @@ function doPost(e) {
         result = { success: false, error: 'Bilinmeyen işlem: ' + action };
     }
     
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
+    output.setContent(JSON.stringify(result));
+    return output;
       
   } catch (error) {
     Logger.log('Hata: ' + error.toString());
-    return ContentService.createTextOutput(JSON.stringify({
+    
+    const errorOutput = ContentService.createTextOutput();
+    errorOutput.setMimeType(ContentService.MimeType.JSON);
+    errorOutput.setContent(JSON.stringify({
       success: false,
       error: error.toString(),
       timestamp: new Date().toISOString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    }));
+    return errorOutput;
   }
 }
 
