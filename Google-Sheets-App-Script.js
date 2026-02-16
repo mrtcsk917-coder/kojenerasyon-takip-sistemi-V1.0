@@ -324,8 +324,16 @@ function saveBulkRecords(sheet, dataList) {
  * Sheet headers'ını getir
  */
 function getHeaders(sheet) {
-  const headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  return headerRow.map(header => header.toString().trim());
+  try {
+    const headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    return headerRow.map(header => header.toString().trim());
+  } catch (error) {
+    // Eğer sheet boşsa, manuel header'ları dön
+    if (sheet.getName() === 'BuharVerileri') {
+      return ['Tarih', 'Saat', 'Buhar Miktarı (ton)', 'Notlar', 'Kaydeden', 'Kayıt Zamanı'];
+    }
+    return [];
+  }
 }
 
 /**
