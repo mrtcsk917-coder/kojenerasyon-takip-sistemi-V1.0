@@ -19,19 +19,20 @@ const GoogleSheetsAPI = {
                 return { success: false, error: 'Modül URL bulunamadı' };
             }
 
-            const payload = {
-                action: action,
-                module: module,
-                data: data,
-                timestamp: new Date().toISOString()
-            };
+            // FormData oluştur
+            const formData = new FormData();
+            formData.append('action', action);
+            formData.append('module', module);
+            formData.append('timestamp', new Date().toISOString());
+            
+            // Veri alanlarını FormData'ya ekle
+            Object.keys(data).forEach(key => {
+                formData.append(key, data[key]);
+            });
 
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
+                body: formData  // Content-Type otomatik ayarlanır
             });
 
             if (!response.ok) {
@@ -62,19 +63,19 @@ const GoogleSheetsAPI = {
                 return { success: false, error: 'Modül URL bulunamadı' };
             }
 
-            const payload = {
-                action: 'get',
-                module: module,
-                filters: filters,
-                timestamp: new Date().toISOString()
-            };
+            // FormData oluştur
+            const formData = new FormData();
+            formData.append('action', 'get');
+            formData.append('module', module);
+            
+            // Filtreleri FormData'ya ekle
+            Object.keys(filters).forEach(key => {
+                formData.append(key, filters[key]);
+            });
 
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
+                body: formData
             });
 
             if (!response.ok) {
@@ -160,11 +161,34 @@ const GoogleSheetsAPI = {
      */
     testConnection: async function(module) {
         try {
-            const result = await this.getData(module, { type: 'test' });
-            return result.success;
+            const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS[module];
+            if (!url) {
+                console.error(`Google Sheets URL bulunamadı: ${module}`);
+                return { success: false, error: 'Modül URL bulunamadı' };
+            }
+
+            // FormData oluştur
+            const formData = new FormData();
+            formData.append('action', 'test');
+            formData.append('module', module);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log(`${module} bağlantı testi başarılı:`, result);
+            
+            return { success: true, data: result };
+
         } catch (error) {
-            console.error('Bağlantı testi başarısız:', error);
-            return false;
+            console.error(`${module} bağlantı hatası:`, error);
+            return { success: false, error: error.message };
         }
     },
 
@@ -181,19 +205,15 @@ const GoogleSheetsAPI = {
                 return { success: false, error: 'Modül URL bulunamadı' };
             }
 
-            const payload = {
-                action: 'bulk_save',
-                module: module,
-                data: dataList,
-                timestamp: new Date().toISOString()
-            };
+            // FormData oluştur
+            const formData = new FormData();
+            formData.append('action', 'bulk_save');
+            formData.append('module', module);
+            formData.append('data', JSON.stringify(dataList)); // Array'i string olarak ekle
 
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
+                body: formData
             });
 
             if (!response.ok) {

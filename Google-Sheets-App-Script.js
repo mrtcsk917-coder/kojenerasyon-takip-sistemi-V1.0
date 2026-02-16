@@ -13,14 +13,18 @@
 
 function doPost(e) {
   try {
-    // CORS header'ları ekle
-    const output = ContentService.createTextOutput();
-    output.setMimeType(ContentService.MimeType.JSON);
+    // FormData'dan verileri al
+    const action = e.parameter.action;
+    const module = e.parameter.module;
+    const timestamp = e.parameter.timestamp;
     
-    const data = JSON.parse(e.postData.contents);
-    const action = data.action;
-    const module = data.module;
-    const payload = data.data;
+    // Veri objesini oluştur (action, module, timestamp hariç)
+    const payload = {};
+    Object.keys(e.parameter).forEach(key => {
+      if (!['action', 'module', 'timestamp'].includes(key)) {
+        payload[key] = e.parameter[key];
+      }
+    });
     
     // Sheet isimlerini belirle
     const sheetNames = {

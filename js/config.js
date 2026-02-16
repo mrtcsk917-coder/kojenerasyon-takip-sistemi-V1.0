@@ -105,18 +105,18 @@ const CONFIG = {
     
     // Google Sheets Web App URL'leri (API Key gerekmez)
     GOOGLE_SHEETS_WEB_APP_URLS: {
-        buhar: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec',
-        kojen_motor: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec',
-        kojen_enerji: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec',
-        saatlik: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec',
-        gunluk_enerji: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec',
-        vardiya: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec',
-        bakim: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec',
-        ariza: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec'
+        buhar: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
+        kojen_motor: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
+        kojen_enerji: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
+        saatlik: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
+        gunluk_enerji: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
+        vardiya: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
+        bakim: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec',
+        ariza: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec'
     },
     
     // Geriye dönük uyumluluk için eski URL
-    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzeYmr6ZCbnC041qtsCxig9QMxgY8lnQ_vje2CIV6xg74mhqDgerona4mVWGEWnZitr/exec'
+    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwMfZYUyHFHCKv3EMMpCk-B0GFTSw5p9nvlUc2AF4ua0o3rhTc--aGfUGcoj61zDDjz/exec'
 };
 
 // Config'i global olarak erisilebilir yap
