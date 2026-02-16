@@ -29,22 +29,25 @@ const CONFIG = {
         { username: 'user', password: 'user123', name: 'Normal Kullanıcı', role: 'user' }
     ],
     
-    // Tarih formatı yardımcı fonksiyonu
+    // Tarih formatı yardımcı fonksiyonu (Türkçe format)
     formatDate: function(date = new Date()) {
+        if (typeof date === 'string') date = new Date(date);
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     },
     
-    // Tarih ve saat formatı
+    // Tarih ve saat formatı (Türkçe format)
     formatDateTime: function(date = new Date()) {
+        if (typeof date === 'string') date = new Date(date);
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${day}/${month}/${year} ${hours}:${minutes}`;
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
     },
     
     // Tüm tarih input'larını otomatik doldur
@@ -105,7 +108,7 @@ const CONFIG = {
     
     // Google Sheets Web App URL'leri (API Key gerekmez)
     GOOGLE_SHEETS_WEB_APP_URLS: {
-        buhar: 'https://script.google.com/macros/s/AKfycbw0t5cgW-bLUWX2P0m9BqVr_psBVP03q5tOKVb94YVs9TwCF1SPrs-TYrN7tmKMYjCM/exec'
+        buhar: 'https://script.google.com/macros/s/AKfycbzZ4Pq1AmRMgwibcLzPYJLVjZ6H-hDQuBVDPnXe_T7V--qLzg4PDy9kpTZXFIlV-BAf/exec'
         // Diğer modüller geçici olarak devre dışı
         // kojen_motor: 'URL',
         // kojen_enerji: 'URL',
@@ -117,7 +120,7 @@ const CONFIG = {
     },
     
     // Geriye dönük uyumluluk için eski URL
-    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbw0t5cgW-bLUWX2P0m9BqVr_psBVP03q5tOKVb94YVs9TwCF1SPrs-TYrN7tmKMYjCM/exec'
+    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzZ4Pq1AmRMgwibcLzPYJLVjZ6H-hDQuBVDPnXe_T7V--qLzg4PDy9kpTZXFIlV-BAf/exec'
 };
 
 // Config'i global olarak erisilebilir yap

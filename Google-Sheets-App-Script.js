@@ -157,7 +157,14 @@ function saveRecord(sheet, data) {
           value = data.recordedBy || 'admin';
           break;
         case 'Kayıt Zamanı':
-          value = data.timestamp || new Date().toLocaleString('tr-TR');
+          value = data.timestamp || new Date().toLocaleString('tr-TR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
           break;
         case 'ID':  // Yeni eklenen sütun
           value = data.id || Date.now().toString();

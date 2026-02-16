@@ -8,16 +8,16 @@ const BuharVerileri = {
     steamData: [],
     
     /**
-     * Modülü başlat
+     * Sayfayı başlat
      */
     init: function() {
         this.bindEvents();
-        this.loadSteamData();
         this.setDefaultDateTime();
-        this.updateDateTime();
+        this.startDateTimeUpdate();
+        this.loadFromStorage();
         
-        // Her saniye tarihi güncelle
-        setInterval(() => this.updateDateTime(), 1000);
+        // Google Sheets'ten veri çek
+        this.loadFromGoogleSheets();
     },
     
     /**
@@ -56,8 +56,17 @@ const BuharVerileri = {
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const time = `${hours}:${minutes}`;
         
-        document.getElementById('steam-date').value = date;
-        document.getElementById('steam-time').value = time;
+        // Tarih ve saat input'larını doldur
+        const dateInput = document.getElementById('steam-date');
+        const timeInput = document.getElementById('steam-time');
+        
+        if (dateInput) {
+            dateInput.value = date;
+        }
+        
+        if (timeInput) {
+            timeInput.value = time;
+        }
     },
     
     /**
@@ -256,7 +265,7 @@ const BuharVerileri = {
     },
     
     /**
-     * Tarih formatla
+     * Tarih formatla (Türkçe format)
      */
     formatDate: function(dateString) {
         const date = new Date(dateString);
@@ -267,7 +276,7 @@ const BuharVerileri = {
     },
     
     /**
-     * Tarih ve saat formatla
+     * Tarih ve saat formatla (Türkçe format)
      */
     formatDateTime: function(dateString) {
         const date = new Date(dateString);
@@ -393,6 +402,32 @@ const BuharVerileri = {
         } catch (error) {
             console.error('Excel aktarım hatası:', error);
             Utils.showToast('Excel aktarımı başarısız: ' + error.message, 'error');
+        }
+    },
+    
+    /**
+     * Google Sheets'ten veri çek
+     */
+    loadFromGoogleSheets: async function() {
+        try {
+            Utils.showLoading();
+            
+            const result = await GoogleSheetsAPI.getData('buhar', { type: 'recent', limit: 100 });
+            
+            if (result.success && result.data) {
+                this.steamData = result.data;
+                Utils.saveToStorage(CONFIG.STORAGE_KEYS.STEAM_DATA, this.steamData);
+                this.renderSteamTable();
+                this.updateRecordCount();
+                Utils.showToast('Veriler Google Sheets\'ten yüklendi', 'success');
+            } else {
+                Utils.showToast('Google Sheets\'ten veri yüklenemedi', 'error');
+            }
+        } catch (error) {
+            console.error('Google Sheets yükleme hatası:', error);
+            Utils.showToast('Google Sheets\'ten veri yüklenemedi: ' + error.message, 'error');
+        } finally {
+            Utils.hideLoading();
         }
     },
     
