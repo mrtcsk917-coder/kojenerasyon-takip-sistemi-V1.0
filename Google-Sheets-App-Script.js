@@ -42,21 +42,23 @@ function doPost(e) {
       // Buhar verileri için header'ları oluştur
       if (module === 'buhar') {
         // Manuel olarak header'ları ekle
-        sheet.getRange("A1").setValue("Tarih");
-        sheet.getRange("B1").setValue("Saat");
-        sheet.getRange("C1").setValue("Buhar Miktarı (ton)");
-        sheet.getRange("D1").setValue("Notlar");
-        sheet.getRange("E1").setValue("Kaydeden");
-        sheet.getRange("F1").setValue("Kayıt Zamanı");
+        sheet.getRange("A1").setValue("ID");
+        sheet.getRange("B1").setValue("Tarih");
+        sheet.getRange("C1").setValue("Saat");
+        sheet.getRange("D1").setValue("Buhar Miktarı (ton)");
+        sheet.getRange("E1").setValue("Notlar");
+        sheet.getRange("F1").setValue("Kaydeden");
+        sheet.getRange("G1").setValue("Kayıt Zamanı");
         
         // Formatla
-        sheet.getRange("A1:F1").setFontWeight("bold");
+        sheet.getRange("A1:G1").setFontWeight("bold");
         sheet.autoResizeColumn(1);
         sheet.autoResizeColumn(2);
         sheet.autoResizeColumn(3);
         sheet.autoResizeColumn(4);
         sheet.autoResizeColumn(5);
         sheet.autoResizeColumn(6);
+        sheet.autoResizeColumn(7);
       }
     }
     
@@ -126,16 +128,19 @@ function saveRecord(sheet, data) {
           value = data.time || '';
           break;
         case 'Buhar Miktarı (ton)':
-          value = data.amount || '';
+          value = data.production || data.amount || '';
           break;
         case 'Notlar':
           value = data.notes || '';
           break;
         case 'Kaydeden':
-          value = data.recordedBy || '';
+          value = data.recordedBy || 'admin';
           break;
         case 'Kayıt Zamanı':
-          value = data.timestamp || new Date().toISOString();
+          value = data.timestamp || new Date().toLocaleString('tr-TR');
+          break;
+        case 'ID':  // Yeni eklenen sütun
+          value = data.id || Date.now().toString();
           break;
         default:
           value = data[header] || '';
@@ -356,7 +361,7 @@ function getHeaders(sheet) {
   } catch (error) {
     // Eğer sheet boşsa, manuel header'ları dön
     if (sheet.getName() === 'BuharVerileri') {
-      return ['Tarih', 'Saat', 'Buhar Miktarı (ton)', 'Notlar', 'Kaydeden', 'Kayıt Zamanı'];
+      return ['ID', 'Tarih', 'Saat', 'Buhar Miktarı (ton)', 'Notlar', 'Kaydeden', 'Kayıt Zamanı'];
     }
     return [];
   }
