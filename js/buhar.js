@@ -35,16 +35,6 @@ const BuharVerileri = {
             this.resetForm();
         });
         
-        // Ana kaydet butonu
-        document.getElementById('save-steam-btn').addEventListener('click', () => {
-            document.getElementById('steam-form').dispatchEvent(new Event('submit'));
-        });
-        
-        // Temizle butonu
-        document.getElementById('clear-steam-btn').addEventListener('click', () => {
-            this.clearAllData();
-        });
-        
         // Excel'e aktar
         document.getElementById('export-steam-btn').addEventListener('click', () => {
             this.exportToExcel();
