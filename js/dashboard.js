@@ -7,7 +7,7 @@ const Dashboard = {
      * Modülü başlat
      */
     init: function() {
-        this.updateDate();
+        this.updateDashboardDate();
         this.loadStats();
         this.setupEventListeners();
         this.initGoogleSheets();

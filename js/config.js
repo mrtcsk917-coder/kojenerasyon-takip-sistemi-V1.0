@@ -80,13 +80,11 @@ const CONFIG = {
                         input.max = dateString;
                     }
                     filledCount++;
-                    console.log(`Tarih dolduruldu: ${inputId} = ${dateString}`);
-                } else {
-                    console.log(`Input bulunamadı veya date değil: ${inputId}`);
+                } else if (input) {
+                    // Input var ama date değil - sessizce geç
                 }
             });
-            
-            console.log(`Tüm tarih alanları otomatik dolduruldu: ${dateString} (${filledCount}/${dateInputs.length})`);
+            // Debug mesajı kaldırıldı
         }, 100); // 100ms gecikme
     },
     
