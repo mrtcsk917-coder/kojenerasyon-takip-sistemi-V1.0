@@ -242,20 +242,6 @@ const Utils = {
      * Durum metni dondur
      */
     getStatusText: function(status) {
-        const texts = {
-            'aktif': 'Aktif',
-            'cozuldu': 'Cozuldu',
-            'devam': 'Devam Ediyor',
-            'tamamlandi': 'Tamamlandi',
-            'planlandi': 'Planlandi',
-            'periodik': 'Periodik Bakim',
-            'onarım': 'Onarim',
-            'revizyon': 'Revizyon',
-            'elektrik': 'Elektrik',
-            'mekanik': 'Mekanik',
-            'yazilim': 'Yazilim',
-            'sensör': 'Sensor'
-        };
         return texts[status] || status;
     }
 };

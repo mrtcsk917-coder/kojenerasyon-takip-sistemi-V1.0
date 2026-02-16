@@ -146,13 +146,15 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.8rem 1.5rem;
     border: none;
     border-radius: 8px;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 1rem;
+    min-width: 120px;
+    justify-content: center;
 }
 
 .form-actions .btn-primary {
@@ -174,6 +176,10 @@
 .form-actions .btn-secondary:hover {
     background: #cbd5e0;
     transform: translateY(-1px);
+}
+
+.btn-full-width {
+    width: 100%;
 }
 
 /* ===== VERI BÖLÜMÜ ===== */

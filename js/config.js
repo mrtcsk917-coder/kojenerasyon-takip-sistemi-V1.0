@@ -108,7 +108,7 @@ const CONFIG = {
     
     // Google Sheets Web App URL'leri (API Key gerekmez)
     GOOGLE_SHEETS_WEB_APP_URLS: {
-        buhar: 'https://script.google.com/macros/s/AKfycbzZ4Pq1AmRMgwibcLzPYJLVjZ6H-hDQuBVDPnXe_T7V--qLzg4PDy9kpTZXFIlV-BAf/exec'
+        buhar: 'https://script.google.com/macros/s/AKfycbwrdqJFW06B6bgyd_BJGUmWIZyQcZVRXYviWkfFuoNE1_3mmyuL9RHFqiBR_Ic_ttT/exec'
         // Diğer modüller geçici olarak devre dışı
         // kojen_motor: 'URL',
         // kojen_enerji: 'URL',
@@ -120,7 +120,7 @@ const CONFIG = {
     },
     
     // Geriye dönük uyumluluk için eski URL
-    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzZ4Pq1AmRMgwibcLzPYJLVjZ6H-hDQuBVDPnXe_T7V--qLzg4PDy9kpTZXFIlV-BAf/exec'
+    GOOGLE_SHEETS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbwrdqJFW06B6bgyd_BJGUmWIZyQcZVRXYviWkfFuoNE1_3mmyuL9RHFqiBR_Ic_ttT/exec'
 };
 
 // Config'i global olarak erisilebilir yap

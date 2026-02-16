@@ -111,6 +111,21 @@ function doPost(e) {
  */
 function saveRecord(sheet, data) {
   try {
+    // Concurrency kontrolü - aynı anda sadece bir işlem
+    const lockKey = sheet.getName() + '_save_lock';
+    const lock = CacheService.getPublicCache().get(lockKey);
+    
+    if (lock !== null) {
+      return {
+        success: false,
+        error: 'Lütfen bekleyin... Başka bir kayıt işlemi devam ediyor.',
+        lockActive: true
+      };
+    }
+    
+    // Kilit oluştur
+    CacheService.getPublicCache().put(lockKey, 'locked', 60); // 60 saniye
+    
     // Headers'ı kontrol et
     const headers = getHeaders(sheet);
     
@@ -123,11 +138,19 @@ function saveRecord(sheet, data) {
         // Header hariç diğer satırları kontrol et
         for (let i = 1; i < existingData.length; i++) {
           const existingDate = existingData[i][dateColumnIndex];
-          if (existingDate && existingDate.toString() === data.date) {
+          // Tarih formatlarını normalize et (her iki formatı da kontrol et)
+          const normalizedExisting = existingDate ? existingDate.toString().replace(/\./g, '/').replace(/-/g, '/') : '';
+          const normalizedNew = data.date.replace(/\./g, '/').replace(/-/g, '/');
+          
+          if (existingDate && normalizedExisting === normalizedNew) {
+            // Kilidi serbest bırak
+            CacheService.getPublicCache().remove(lockKey);
+            
             return {
               success: false,
               error: 'Bu tarihte zaten kayıt mevcut: ' + data.date + '. Aynı tarihte birden fazla kayıt yapılamaz.',
-              existingDate: existingDate.toString()
+              existingDate: existingDate.toString(),
+              duplicateFound: true
             };
           }
         }
@@ -178,6 +201,9 @@ function saveRecord(sheet, data) {
     
     sheet.appendRow(newRow);
     
+    // Kilidi serbest bırak
+    CacheService.getPublicCache().remove(lockKey);
+    
     return {
       success: true,
       message: 'Kayıt başarıyla eklendi',
@@ -185,6 +211,9 @@ function saveRecord(sheet, data) {
       timestamp: new Date().toISOString()
     };
   } catch (error) {
+    // Hata durumunda kilidi serbest bırak
+    CacheService.getPublicCache().remove(lockKey);
+    
     return {
       success: false,
       error: error.toString()
@@ -289,6 +318,9 @@ function deleteRecord(sheet, recordId) {
 /**
  * Kayıtları getir
  */
+/**
+ * Kayıtları getir
+ */
 function getRecords(sheet, filters = {}) {
   try {
     const headers = getHeaders(sheet);
@@ -302,11 +334,18 @@ function getRecords(sheet, filters = {}) {
       const row = values[i];
       const record = {};
       
-      headers.forEach((header, index) => {
-        record[header] = row[index] || '';
+      // Her header için doğru index'i kullan
+      headers.forEach((header, headerIndex) => {
+        record[header] = row[headerIndex] || '';
       });
       
       records.push(record);
+    }
+    
+    // Debug için log ekle
+    Logger.log('Çekilen kayıt sayısı: ' + records.length);
+    if (records.length > 0) {
+      Logger.log('İlk kayıt: ' + JSON.stringify(records[0]));
     }
     
     // Filtreleme
@@ -340,40 +379,12 @@ function getRecords(sheet, filters = {}) {
       count: records.length,
       timestamp: new Date().toISOString()
     };
-    
   } catch (error) {
+    Logger.log('getRecords hatası: ' + error.toString());
     return {
       success: false,
-      error: error.toString()
-    };
-  }
-}
-
-/**
- * Toplu kayıt
- */
-function saveBulkRecords(sheet, dataList) {
-  try {
-    const headers = getHeaders(sheet);
-    
-    dataList.forEach(data => {
-      const newRow = [];
-      headers.forEach(header => {
-        newRow.push(data[header] || '');
-      });
-      sheet.appendRow(newRow);
-    });
-    
-    return {
-      success: true,
-      message: dataList.length + ' kayıt başarıyla eklendi',
-      count: dataList.length,
+      error: error.toString(),
       timestamp: new Date().toISOString()
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.toString()
     };
   }
 }
