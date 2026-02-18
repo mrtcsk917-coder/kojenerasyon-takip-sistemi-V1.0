@@ -85,7 +85,12 @@ const GoogleSheetsAPI = {
             const result = await response.json();
             console.log(`${module} verisi başarıyla çekildi:`, result);
             
-            return { success: true, data: result };
+            // result.data array kontrolü
+            if (Array.isArray(result.data)) {
+                return { success: true, data: result.data };
+            } else {
+                return { success: true, data: [result.data] };
+            }
 
         } catch (error) {
             console.error(`${module} veri çekme hatası:`, error);

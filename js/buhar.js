@@ -4,8 +4,18 @@
  */
 
 const BuharVerileri = {
-    // Mevcut veriler
-    steamData: [],
+    // Veri depoları
+    googleSheetsData: [],
+    isSaving: false,  // ← YENİ: çift kayıt engelleme
+    
+    /**
+     * Debug log (sadece DEBUG_MODE'da çalışır)
+     */
+    debugLog: function(message, data = null) {
+        if (CONFIG.DEBUG_MODE) {
+            console.log('🔍 [BUHAR DEBUG]', message, data || '');
+        }
+    },
     
     /**
      * Sayfayı başlat
@@ -13,52 +23,56 @@ const BuharVerileri = {
     init: function() {
         this.bindEvents();
         this.setDefaultDateTime();
-        
-        // startDateTimeUpdate çağrısını kontrol et
-        if (typeof this.startDateTimeUpdate === 'function') {
-            this.startDateTimeUpdate();
-        }
-        
-        // Önce localStorage'dan hızlıca yükle
-        this.loadFromStorage();
-        
-        // Sonra Google Sheets'ten çek ve localStorage'ı güncelle
-        this.loadFromGoogleSheets();
+        this.loadGoogleSheetsData();
     },
     
     /**
      * Event listener'ları bağla
      */
     bindEvents: function() {
+        this.debugLog('Event listener\'lar bağlanıyor...');
+        
+        // Form element kontrolü
+        const form = document.getElementById('steam-form');
+        const submitBtn = document.getElementById('steam-form-submit');
+        const resetBtn = document.getElementById('reset-steam-form');
+        
+        this.debugLog('Form elementleri:', {
+            form: !!form,
+            submitBtn: !!submitBtn,
+            resetBtn: !!resetBtn
+        });
+        
+        if (!form) {
+            this.debugLog('❌ steam-form bulunamadı!');
+            return;
+        }
+        
         // Sadece form submit event'i
-        document.getElementById('steam-form').addEventListener('submit', (e) => {
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
+            this.debugLog('Form submit eventi tetiklendi');
             this.saveSteamData();
         });
         
         // Form temizle butonu
-        document.getElementById('reset-steam-form').addEventListener('click', () => {
-            this.resetForm();
-        });
-    },
-    
-    /**
-     * Tarih/saat güncellemeyi başlat
-     */
-    startDateTimeUpdate: function() {
-        this.dateTimeInterval = setInterval(() => {
-            this.updateDateTime();
-        }, 1000); // Her saniye güncelle
-    },
-    
-    /**
-     * Tarih/saat güncellemeyi durdur
-     */
-    stopDateTimeUpdate: function() {
-        if (this.dateTimeInterval) {
-            clearInterval(this.dateTimeInterval);
-            this.dateTimeInterval = null;
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                this.debugLog('Form temizleme butonu tıklandı');
+                this.resetForm();
+            });
         }
+        
+        // Google Sheets yenile butonu
+        const refreshBtn = document.getElementById('refresh-google-sheets-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                this.debugLog('Google Sheets yenileme butonu tıklandı');
+                this.loadGoogleSheetsData();
+            });
+        }
+        
+        this.debugLog('✅ Event listener\'lar başarıyla bağlandı');
     },
     
     /**
@@ -90,45 +104,151 @@ const BuharVerileri = {
     },
     
     /**
-     * Anlık tarih ve saati güncelle
+     * Tablo için tarih formatı (güvenli)
      */
-    updateDateTime: function() {
-        const now = new Date();
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const year = now.getFullYear();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        const dateTimeString = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    formatTableDate: function(dateValue) {
+        return this.processDateTime(dateValue, null, { outputFormat: 'DD/MM/YYYY' });
+    },
+
+    /**
+     * Tablo için saat formatı (güvenli - 1899 sorununu düzelt)
+     */
+    formatTableTime: function(timeValue) {
+        if (!timeValue) return '-';
         
-        // Buhar sayfası
-        const dateTimeElement = document.getElementById('current-datetime');
-        if (dateTimeElement) {
-            dateTimeElement.textContent = dateTimeString;
+        // 1899 sorununu düzelt
+        if (timeValue.includes('1899')) {
+            return '-';
         }
         
-        // Kojen Motor sayfası
-        const kojenMotorElement = document.getElementById('kojen-motor-datetime');
-        if (kojenMotorElement) {
-            kojenMotorElement.textContent = dateTimeString;
+        if (timeValue.includes('T')) return '-';
+        return timeValue;
+    },
+
+    /**
+     * Kayıt zamanı formatı (Google Sheets'den gelen sortDate)
+     */
+    formatRecordTime: function(sortDate, dateValue, timeValue) {
+        // Öncelikle Google Sheets'den gelen sortDate'ı kullan
+        if (sortDate && sortDate.includes('T')) {
+            const date = new Date(sortDate);
+            const formattedDate = CONFIG.formatDate(date);
+            const formattedTime = date.toLocaleTimeString('tr-TR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            return `${formattedDate} ${formattedTime}`;
         }
         
-        // Kojen Enerji sayfası
-        const kojenEnerjiElement = document.getElementById('kojen-enerji-datetime');
-        if (kojenEnerjiElement) {
-            kojenEnerjiElement.textContent = dateTimeString;
+        // 1899 sorununu düzelt - timeValue 1899 içeriyorsa sortDate'dan saat al
+        if (timeValue && timeValue.includes('1899')) {
+            if (sortDate && sortDate.includes('T')) {
+                const date = new Date(sortDate);
+                const formattedDate = CONFIG.formatDate(date);
+                const formattedTime = date.toLocaleTimeString('tr-TR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                return `${formattedDate} ${formattedTime}`;
+            }
+        }
+        
+        // sortDate yoksa merkezi fonksiyonu kullan
+        return this.processDateTime(dateValue, timeValue, { 
+            outputFormat: 'display', 
+            includeTime: true 
+        });
+    },
+
+    /**
+     * Sıralama anahtarı oluştur (format bağımsız - güvenli)
+     */
+    createSortKey: function(dateStr, timeStr) {
+        return this.processDateTime(dateStr, timeStr, { outputFormat: 'sortKey' });
+    },
+
+    /**
+     * Tarihi normalize et (güvenli parsing - locale bağımsız - UTC sorunu yok)
+     */
+    normalizeDate: function(dateValue) {
+        return this.processDateTime(dateValue, null, { outputFormat: 'YYYY-MM-DD' });
+    },
+
+    /**
+     * TEK MERKEZİ Tarih-Saat İşleme Fonksiyonu
+     */
+    processDateTime: function(dateStr, timeStr, options = {}) {
+        const {
+            outputFormat = 'YYYY-MM-DD', // YYYY-MM-DD, DD/MM/YYYY, sortKey, display
+            includeTime = false,
+            fallbackTime = '00:00'
+        } = options;
+        
+        if (!dateStr) return outputFormat === 'sortKey' ? '0000-00-00 00:00' : '-';
+        
+        // Tarih formatını normalize et
+        let year, month, day;
+        
+        if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            [year, month, day] = dateStr.split('-');
+        } else {
+            const cleanDate = dateStr.replace(/[.]/g, '/');
+            const parts = cleanDate.split('/');
+            if (parts.length === 3) {
+                [day, month, year] = parts;
+            } else {
+                return outputFormat === 'sortKey' ? '9999-99-99 99:99' : '-';
+            }
+        }
+        
+        year = parseInt(year, 10) || 0;
+        month = parseInt(month, 10) || 0;
+        day = parseInt(day, 10) || 0;
+        
+        // Saat işleme
+        let cleanTime = timeStr || fallbackTime;
+        if (cleanTime.includes('1899')) {
+            cleanTime = cleanTime.split('T')[1]?.substring(0, 5) || fallbackTime;
+        }
+        if (cleanTime.includes('T')) {
+            cleanTime = cleanTime.split('T')[1]?.substring(0, 5) || fallbackTime;
+        }
+        
+        // Çıktı formatı
+        switch (outputFormat) {
+            case 'YYYY-MM-DD':
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            case 'DD/MM/YYYY':
+                return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+            case 'sortKey':
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${cleanTime}`;
+            case 'time':
+                return cleanTime;
+            case 'display':
+                const formattedDate = CONFIG.formatDate(new Date(year, month - 1, day));
+                return includeTime ? `${formattedDate} ${cleanTime}` : formattedDate;
+            default:
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         }
     },
-    
+
     /**
      * Buhar verisi kaydet
      */
     async saveSteamData() {
+        // Eğer zaten kaydediyorsa, yeni kaydı engelle
+        if (this.isSaving) {
+            this.debugLog('Zaten kaydediliyor, bekleyin...');
+            Utils.showToast('Kaydediliyor, lütfen bekleyin...', 'warning');
+            return;
+        }
+        
         try {
+            // ✅ Tek kilit: hem UI hem logic
+            this.setLoadingState(true);
             const formData = new FormData(document.getElementById('steam-form'));
             
-            const currentUser = Utils.getCurrentUser();
+            this.debugLog('Form verileri:', Object.fromEntries(formData.entries()));
             
             // Saat boşsa şu anki saati kullan
             let timeValue = formData.get('steam-time');
@@ -137,6 +257,7 @@ const BuharVerileri = {
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
                 timeValue = `${hours}:${minutes}`;
+                this.debugLog('Saat boş, şu anki saat kullanılıyor:', timeValue);
             }
             
             const steamRecord = {
@@ -145,63 +266,86 @@ const BuharVerileri = {
                 time: timeValue,
                 amount: parseFloat(formData.get('steam-amount')) || 0, // ton olarak kaydet
                 notes: formData.get('steam-notes') || '',
-                timestamp: CONFIG.formatDateTime(new Date()),
-                recordedBy: currentUser?.username || currentUser?.name || 'Bilinmeyen Kullanıcı'
+                recordedBy: (Auth?.getCurrentUser()?.username || Auth?.getCurrentUser()?.name) || 'Bilinmeyen Kullanıcı'
             };
+            
+            // Debug için kullanıcı bilgisini logla
+            const currentUser = Auth?.getCurrentUser();
+            this.debugLog('Mevcut kullanıcı:', currentUser);
+            this.debugLog('Kaydedilecek kullanıcı adı:', steamRecord.recordedBy);
+            
+            this.debugLog('Oluşturulan kayıt:', steamRecord);
             
             // Validasyon
             if (!this.validateSteamData(steamRecord)) {
+                this.debugLog('❌ Validasyon hatası');
+                // ✅ Tek kilit aç
+                this.setLoadingState(false);
                 return;
             }
             
-            // Loading state
-            this.setLoadingState(true);
-            
-            // LocalStorage'a kaydet (yedek için)
-            const steamData = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.STEAM_DATA, []);
-            steamData.push(steamRecord);
-            Utils.saveToStorage(CONFIG.STORAGE_KEYS.STEAM_DATA, steamData);
+            this.debugLog('✅ Validasyon başarılı, Google Sheets\'e gönderiliyor...');
             
             // Google Sheets'e kaydet
             if (!CONFIG.DEMO_MODE) {
                 const sheetsResult = await GoogleSheetsAPI.saveData('buhar', steamRecord);
+                this.debugLog('Google Sheets sonucu:', sheetsResult);
+                
                 if (sheetsResult.success) {
                     Utils.showToast('✅ Buhar verisi başarıyla kaydedildi!', 'success');
-                    // Sadece tabloyu güncelle, Google Sheets'ten çekme
-                    this.loadSteamData();
+                    // Verileri yeniden yükle (frontend filtresi ile kontrol)
+                    this.loadGoogleSheetsData();
                 } else {
-                    Utils.showToast('⚠️ LocalStorage\'a kaydedildi, Google Sheets hatası: ' + sheetsResult.error, 'warning');
+                    this.debugLog('❌ Google Sheets hatası:', sheetsResult.error);
+                    Utils.showToast('⚠️ Google Sheets hatası: ' + sheetsResult.error, 'warning');
                 }
             } else {
+                this.debugLog('🧪 Demo mod aktif, kayıt yapılıyor...');
                 Utils.showToast('✅ Buhar verisi demo modunda kaydedildi!', 'success');
+                // Demo modunda da verileri yeniden yükle
+                this.loadGoogleSheetsData();
             }
             
             // Formu temizle
             this.resetForm();
             
         } catch (error) {
-            console.error('Kayıt hatası:', error);
+            this.debugLog('❌ Kayıt hatası:', error);
+            this.debugLog('Hata detayı:', error.message);
+            this.debugLog('Hata stack:', error.stack);
             Utils.showToast('❌ Kayıt sırasında hata oluştu: ' + error.message, 'error');
         } finally {
+            // ✅ Tek kilit aç
             this.setLoadingState(false);
         }
     },
     
     /**
-     * Loading state ayarla
+     * Loading state ayarla (tek kilit - UI + logic senkron)
      */
     setLoadingState: function(loading) {
         const form = document.getElementById('steam-form');
         const buttons = form.querySelectorAll('button');
         
+        // ✅ Tek kilit: hem UI hem logic
+        this.isSaving = loading;
+        
         if (loading) {
             form.classList.add('loading');
             buttons.forEach(btn => btn.disabled = true);
-            Utils.showLoading();
+            // ✅ Utils.showToast kullan (queue bozulmaz)
+            Utils.showToast('⏳ Yükleniyor...', 'info', 0); // 0 = auto hide yok
         } else {
             form.classList.remove('loading');
             buttons.forEach(btn => btn.disabled = false);
-            Utils.hideLoading();
+            // ✅ Loading toast'ını temizle (manuel olarak)
+            const toast = document.getElementById('toast');
+            if (toast && toast.textContent.includes('⏳ Yükleniyor...')) {
+                toast.classList.add('hidden');
+                // Queue'yu temizle ve devam et
+                Utils.isToastShowing = false;
+                Utils.processToastQueue();
+            }
         }
     },
     
@@ -209,315 +353,282 @@ const BuharVerileri = {
      * Buhar verisi validasyonu
      */
     validateSteamData: function(data) {
+        this.debugLog('Validasyon kontrolü başlıyor:', data);
+        
         if (!data.date || !data.time) {
+            this.debugLog('❌ Tarih veya saat eksik:', { date: data.date, time: data.time });
             Utils.showToast('Tarih ve saat alanları zorunludur!', 'error');
             return false;
         }
         
         if (isNaN(data.amount) || data.amount < 0) {
+            this.debugLog('❌ Buhar miktarı geçersiz:', { amount: data.amount, isNaN: isNaN(data.amount) });
             Utils.showToast('Buhar miktarı geçerli bir sayı olmalıdır!', 'error');
             return false;
         }
         
+        this.debugLog('✅ Validasyon başarılı');
         return true;
     },
-    
+
     /**
-     * Buhar verilerini yükle
+     * Google Sheets verilerini göster
      */
-    async loadSteamData() {
-        try {
-            // LocalStorage'dan verileri yükle
-            this.steamData = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.STEAM_DATA, []);
-            
-            // Tarihe göre tersten sırala (en yeni üstte)
-            this.steamData.sort((a, b) => {
-                const dateA = new Date(a.date + ' ' + a.time);
-                const dateB = new Date(b.date + ' ' + b.time);
-                return dateB - dateA;
-            });
-            
-            this.renderSteamTable();
-            
-        } catch (error) {
-            console.error('Veri yükleme hatası:', error);
-            Utils.showToast('Veri yükleme hatası: ' + error.message, 'error');
+    renderGoogleSheetsTable: function() {
+        const tableBody = document.getElementById('google-sheets-table-body');
+        const noDataMessage = document.getElementById('no-google-sheets-data');
+        const countElement = document.getElementById('google-sheets-count');
+        
+        this.debugLog('Tablo render başladı...');
+        this.debugLog('Google Sheets veri sayısı:', this.googleSheetsData.length);
+        this.debugLog('Veriler:', this.googleSheetsData);
+        
+        if (!tableBody) {
+            this.debugLog('google-sheets-table-body bulunamadı!');
+            return;
         }
-    },
-    
-    /**
-     * Tabloyu oluştur ve verileri göster
-     */
-    renderSteamTable: function() {
-        const tableBody = document.getElementById('steam-table-body');
-        const noDataMessage = document.getElementById('no-steam-data');
         
-        if (!tableBody) return;
-        
-        if (this.steamData.length === 0) {
+        if (this.googleSheetsData.length === 0) {
+            this.debugLog('Gösterilecek veri yok');
             tableBody.innerHTML = '';
             if (noDataMessage) {
                 noDataMessage.style.display = 'block';
             }
+            if (countElement) {
+                countElement.textContent = '0';
+            }
             return;
         }
+        
+        this.debugLog('Veriler render ediliyor...');
         
         if (noDataMessage) {
             noDataMessage.style.display = 'none';
         }
         
-        tableBody.innerHTML = this.steamData.map(record => `
+        if (countElement) {
+            countElement.textContent = this.googleSheetsData.length;
+        }
+        
+        tableBody.innerHTML = this.googleSheetsData.map(record => {
+            const formattedDate = this.formatTableDate(record.date);
+            const formattedTime = this.formatRecordTime(record.sortDate, record.date, record.time);
+            
+            this.debugLog('Kayıt render ediliyor:', {
+                original: record,
+                formattedDate: formattedDate,
+                formattedTime: formattedTime
+            });
+            
+            const html = `
             <tr>
-                <td>${this.formatDate(record.date)}</td>
-                <td>${record.time}</td>
+                <td>${formattedDate}</td>
+                <td>${formattedTime}</td>
                 <td>${record.amount ? record.amount.toFixed(1) : '0'}</td>
                 <td>${record.notes || '-'}</td>
                 <td>${record.recordedBy}</td>
-                <td class="action-buttons">
-                    <button class="btn-small btn-edit" onclick="BuharVerileri.editRecord('${record.id}')" title="Düzenle">
-                        ✏️
-                    </button>
-                    <button class="btn-small btn-delete" onclick="BuharVerileri.deleteRecord('${record.id}')" title="Sil">
-                        🗑️
-                    </button>
-                </td>
             </tr>
-        `).join('');
-    },
-    
-    /**
-     * Tarih formatla (Türkçe format)
-     */
-    formatDate: function(dateString) {
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    },
-    
-    /**
-     * Tarih ve saat formatla (Türkçe format)
-     */
-    formatDateTime: function(dateString) {
-        const date = new Date(dateString);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
-    },
-    
-    /**
-     * Kayıt sayısını güncelle
-     */
-    updateRecordCount: function() {
-        const countElement = document.getElementById('steam-count');
-        if (countElement) {
-            countElement.textContent = this.steamData.length;
-        }
-    },
-    
-    /**
-     * Formu temizle
-     */
-    resetForm: function() {
-        document.getElementById('steam-form').reset();
-        this.setDefaultDateTime();
-    },
-    
-    /**
-     * Tüm verileri temizle
-     */
-    clearAllData: function() {
-        if (confirm('Tüm buhar verilerini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
-            this.steamData = [];
-            Utils.saveToStorage(CONFIG.STORAGE_KEYS.STEAM_DATA, []);
-            this.renderSteamTable();
-            this.updateRecordCount();
-            Utils.showToast('Tüm veriler temizlendi', 'info');
-        }
-    },
-    
-    /**
-     * Kayıt düzenle
-     */
-    editRecord: function(recordId) {
-        const record = this.steamData.find(r => r.id === recordId);
-        if (!record) {
-            Utils.showToast('Kayıt bulunamadı!', 'error');
-            return;
-        }
+        `;
+            
+            this.debugLog('HTML:', html);
+            return html;
+        }).join('');
         
-        // Formu doldur
-        document.getElementById('steam-date').value = record.date;
-        document.getElementById('steam-time').value = record.time;
-        document.getElementById('steam-amount').value = record.amount;
-        document.getElementById('steam-notes').value = record.notes;
+        this.debugLog('Final HTML length:', tableBody.innerHTML.length);
+        this.debugLog('Final HTML preview:', tableBody.innerHTML.substring(0, 200));
         
-        // Eski kaydı sil
-        this.deleteRecord(recordId, false);
-        
-        // Forma odaklan
-        document.getElementById('steam-amount').focus();
-        
-        Utils.showToast('Kayıt düzenleme modu. Değişiklikleri yapın ve kaydedin.', 'info');
+        this.debugLog('Tablo render tamamlandı!');
     },
-    
+
     /**
-     * Kayıt sil
+     * Google Sheets verilerini yükle (sadece API çağrısı)
      */
-    deleteRecord: function(recordId, showConfirm = true) {
-        if (showConfirm && !confirm('Bu kaydı silmek istediğinizden emin misiniz?')) {
-            return;
-        }
-        
-        const index = this.steamData.findIndex(r => r.id === recordId);
-        if (index !== -1) {
-            this.steamData.splice(index, 1);
-            Utils.saveToStorage(CONFIG.STORAGE_KEYS.STEAM_DATA, this.steamData);
-            this.renderSteamTable();
-            this.updateRecordCount();
-            
-            if (showConfirm) {
-                Utils.showToast('Kayıt silindi', 'success');
-            }
-        }
-    },
-    
-    /**
-     * Excel'e aktar
-     */
-    exportToExcel: function() {
-        try {
-            if (this.steamData.length === 0) {
-                Utils.showToast('Aktarılacak veri bulunmuyor!', 'error');
-                return;
-            }
-            
-            // Excel verisi hazırla
-            const excelData = this.steamData.map(record => ({
-                'Tarih': record.date,
-                'Saat': record.time,
-                'Buhar Miktarı (ton)': record.amount,
-                'Notlar': record.notes,
-                'Kaydeden': record.recordedBy,
-                'Kayıt Zamanı': this.formatDateTime(record.timestamp)
-            }));
-            
-            // Excel dosyası oluştur
-            const ws = XLSX.utils.json_to_sheet(excelData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Buhar Verileri');
-            
-            // Dosya adı
-            const fileName = `Buhar_Verileri_${CONFIG.formatDate()}.xlsx`;
-            
-            // İndir
-            XLSX.writeFile(wb, fileName);
-            
-            Utils.showToast('Excel dosyası başarıyla indirildi!', 'success');
-            
-        } catch (error) {
-            console.error('Excel aktarım hatası:', error);
-            Utils.showToast('Excel aktarımı başarısız: ' + error.message, 'error');
-        }
-    },
-    
-    /**
-     * Google Sheets'ten veri çek
-     */
-    loadFromGoogleSheets: async function() {
+    loadGoogleSheetsData: async function() {
         try {
             this.setLoadingState(true);
+            this.debugLog('Google Sheets veri çekme başladı...');
             
-            const result = await GoogleSheetsAPI.getData('buhar', { type: 'recent', limit: 100 });
+            // ✅ Tüm kayıtları çek (UTC sorunu olmasın)
+            const result = await GoogleSheetsAPI.getData('buhar', { type: 'all' });
+            
+            this.debugLog('Google Sheets sonucu:', result);
             
             if (result.success && result.data) {
-                // Google Sheets verilerini frontend formatına çevir
-                const googleSheetsData = result.data.map(record => ({
-                    id: record.ID || record.id,
-                    date: record.Tarih || record.date,
-                    time: record.Saat || record.time,
-                    amount: parseFloat(record['Buhar Miktarı (ton)'] || record.amount || 0),
-                    notes: record.Notlar || record.notes || '',
-                    recordedBy: record.Kaydeden || record.recordedBy || 'admin',
-                    timestamp: record['Kayıt Zamanı'] || record.timestamp
-                }));
-                
-                // Mevcut localStorage verileri ile Google Sheets verilerini birleştir
-                const localStorageData = this.steamData || [];
-                
-                // Google Sheets verilerini localStorage'a ekle (yeni kayıtlar)
-                const mergedData = [...localStorageData];
-                googleSheetsData.forEach(googleRecord => {
-                    const existingIndex = mergedData.findIndex(localRecord => 
-                        localRecord.date === googleRecord.date && localRecord.time === googleRecord.time
-                    );
-                    
-                    if (existingIndex === -1) {
-                        mergedData.push(googleRecord);
-                    } else {
-                        // Mevcut kaydı güncelle
-                        mergedData[existingIndex] = googleRecord;
-                    }
-                });
-                
-                // Tarihe göre sırala
-                mergedData.sort((a, b) => {
-                    const dateA = new Date(a.date + ' ' + a.time);
-                    const dateB = new Date(b.date + ' ' + b.time);
-                    return dateB - dateA;
-                });
-                
-                // Verileri güncelle
-                this.steamData = mergedData;
-                Utils.saveToStorage(CONFIG.STORAGE_KEYS.STEAM_DATA, this.steamData);
-                this.renderSteamTable();
-                this.updateRecordCount();
-                
-                Utils.showToast('Veriler Google Sheets\'ten senkronize edildi', 'success');
+                // Verileri işle ve göster
+                this.processGoogleSheetsData(result.data);
             } else {
-                Utils.showToast('Google Sheets\'ten veri yüklenemedi', 'error');
+                this.debugLog('Google Sheets verileri alınamadı:', result.error);
+                Utils.showToast('❌ Google Sheets verileri alınamadı: ' + result.error, 'error');
             }
+            
         } catch (error) {
-            console.error('Google Sheets yükleme hatası:', error);
-            Utils.showToast('Google Sheets\'ten veri yüklenemedi: ' + error.message, 'error');
+            this.debugLog('Google Sheets yükleme hatası:', error);
+            Utils.showToast('❌ Google Sheets yükleme hatası: ' + error.message, 'error');
         } finally {
             this.setLoadingState(false);
         }
     },
-    
+
     /**
-     * İstatistikleri getir
+     * Google Sheets verilerini işle (mapping + temizleme)
      */
-    getStatistics: function() {
-        if (this.steamData.length === 0) {
-            return {
-                totalRecords: 0,
-                totalAmount: 0
-            };
+    processGoogleSheetsData: function(rawData) {
+        this.debugLog('Google Sheets verileri geldi:', rawData.length, 'kayıt');
+        this.debugLog('İlk 3 kayıt:', rawData.slice(0, 3));
+        
+        // Mapping ve temizleme
+        this.googleSheetsData = rawData.map(record => {
+            return this.mapGoogleSheetsRecord(record);
+        });
+        
+        this.debugLog('Formatlanmış veriler:', this.googleSheetsData);
+        
+        // Sırala
+        this.sortRecords();
+        
+        // En yeni 34 kaydı göster
+        this.filterLatestRecords();
+        
+        // Render
+        this.renderGoogleSheetsTable();
+        
+        Utils.showToast(`✅ Google Sheets verileri güncellendi (${this.googleSheetsData.length} kayıt)`, 'success');
+    },
+
+    /**
+     * Tek bir Google Sheets kaydını map'le
+     */
+    mapGoogleSheetsRecord: function(record) {
+        const rawDate = record.Tarih || record.date || '';
+        const rawTime = record.Saat || record.time || '';
+        
+        // ✅ Merkezi fonksiyon ile tarih işleme
+        const cleanDate = this.processDateTime(rawDate, null, { outputFormat: 'DD/MM/YYYY' });
+        const cleanTime = this.processDateTime(null, rawTime, { outputFormat: 'time' });
+        
+        const formattedRecord = {
+            id: record.ID || record.id || Date.now().toString(),
+            date: cleanDate,  // ✅ String formatında
+            time: cleanTime,  // ✅ String formatında
+            amount: parseFloat(record['Buhar Miktarı (ton)'] || record.amount || 0),
+            notes: record.Notlar || record.notes || '',
+            recordedBy: record.Kaydeden || record.recordedBy || 'admin',
+            sortDate: record.sortDate || null
+        };
+        
+        // ✅ Sıralama anahtarı ekle (new Date() kullanmaz)
+        formattedRecord.sortKey = this.createSortKey(formattedRecord.date, formattedRecord.time);
+        
+        // 1899 sorununu debug et
+        if (formattedRecord.time && formattedRecord.time.includes('1899')) {
+            this.debugLog('1899 sorunu tespit edildi:', {
+                original: record,
+                formatted: formattedRecord,
+                sortDate: formattedRecord.sortDate
+            });
         }
         
-        const totalRecords = this.steamData.length;
-        const totalAmount = this.steamData.reduce((sum, r) => sum + r.amount, 0);
+        this.debugLog('Formatlanmış kayıt:', formattedRecord);
+        return formattedRecord;
+    },
+
+    /**
+     * Son 34 kaydı göster (en yeniler)
+     */
+    filterLatestRecords: function() {
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0]; // YYYY-MM-DD
         
-        return {
-            totalRecords,
-            totalAmount: totalAmount.toFixed(1)
-        };
+        this.debugLog('Bugün (frontend):', todayString);
+        
+        // Frontend'de filtrele
+        const beforeCount = this.googleSheetsData.length;
+        this.debugLog('Filtrelemeden önceki kayıtlar:', this.googleSheetsData.map(r => ({
+            date: r.date,
+            normalized: this.normalizeDate(r.date)
+        })));
+        
+        // ✅ Sadece en yeni 34 kaydı göster
+        this.debugLog('⚠️ Sadece en yeni 34 kayıt gösteriliyor');
+        
+        // En yeni 34 kaydı al (sıralama zaten en yeni üstte)
+        this.googleSheetsData = this.googleSheetsData.slice(0, 34);
+        
+        this.debugLog(`Toplam veriler: ${this.googleSheetsData.length}`);
+        
+        // Bugün için kayıt var mı kontrol et (sadece bilgi amaçlı)
+        const todayRecords = this.googleSheetsData.filter(record => {
+            const recordDate = this.normalizeDate(record.date);
+            const isToday = recordDate === todayString;
+            return isToday;
+        });
+        
+        if (todayRecords.length > 0) {
+            this.debugLog(`✅ Bugün için ${todayRecords.length} kayıt bulundu`);
+        } else {
+            this.debugLog(`ℹ️ Bugün için kayıt bulunamadı, en yeni 34 kayıt gösteriliyor`);
+        }
+    },
+
+    /**
+     * Kayıtları sırala (en yeni üstte)
+     */
+    sortRecords: function() {
+        // Tarihe göre sırala (en yeni üstte) - ✅ String-based sıralama
+        this.googleSheetsData.sort((a, b) => {
+            // Öncelikle sortKey ile sırala (localeCompare)
+            if (a.sortKey && b.sortKey) {
+                return b.sortKey.localeCompare(a.sortKey);
+            }
+            
+            // Fallback: sortDate varsa kullan (ISO string)
+            if (a.sortDate && b.sortDate) {
+                return b.sortDate.localeCompare(a.sortDate);
+            }
+            
+            // Son fallback: manuel sortKey oluştur
+            const sortKeyA = this.createSortKey(a.date, a.time);
+            const sortKeyB = this.createSortKey(b.date, b.time);
+            return sortKeyB.localeCompare(sortKeyA);
+        });
+        
+        this.debugLog('Sıralanmış veriler:', this.googleSheetsData);
+    },
+
+    /**
+     * Kayıt sayısını güncelle
+     */
+    updateRecordCount: function() {
+        const countElement = document.getElementById('google-sheets-count');
+        if (countElement) {
+            countElement.textContent = this.googleSheetsData.length;
+        }
+    },
+
+    /**
+     * Formu temizle
+     */
+    resetForm: function() {
+        const form = document.getElementById('steam-form');
+        if (form) {
+            form.reset();
+            // Varsayılan tarih ve saati tekrar ayarla
+            this.setDefaultDateTime();
+        }
+    },
+
+    /**
+     * Frontend verilerini temizle (sadece local view)
+     */
+    clearFrontendData: function() {
+        if (confirm('Frontend verilerini temizlemek istediğinizden emin misiniz? Bu işlem sadece görünen verileri temizler, Google Sheets\'e dokunmaz.')) {
+            this.googleSheetsData = [];
+            this.renderGoogleSheetsTable();
+            this.updateRecordCount();
+            Utils.showToast('Frontend verileri temizlendi', 'info');
+        }
     }
 };
 
-// Sayfa yüklendiğinde başlat
-document.addEventListener('DOMContentLoaded', function() {
-    // Sadece buhar sayfasındaysa başlat
-    if (document.getElementById('buhar-page')) {
-        BuharVerileri.init();
-    }
-});
-
-// Global erişim
+// Global olarak erişilebilir yap
 window.BuharVerileri = BuharVerileri;

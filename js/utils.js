@@ -4,6 +4,50 @@
  */
 
 const Utils = {
+    // Toast Queue Sistemi
+    toastQueue: [],
+    isToastShowing: false,
+
+    /**
+     * Toast Queue - Sıralı toast gösterimi
+     */
+    processToastQueue: function() {
+        if (this.toastQueue.length === 0 || this.isToastShowing) {
+            return;
+        }
+        
+        this.isToastShowing = true;
+        const { message, type, duration } = this.toastQueue.shift();
+        
+        const toast = document.getElementById('toast');
+        if (!toast) {
+            this.isToastShowing = false;
+            this.processToastQueue();
+            return;
+        }
+        
+        console.log('=== TOAST QUEUE BAŞLATILIYOR ===');
+        console.log('Mesaj:', message);
+        console.log('Tip:', type);
+        
+        // Toast'u göster
+        toast.classList.remove('hidden');
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        
+        console.log('Toast gösterildi:', toast.className);
+        
+        // Süre sonra gizle ve bir sonrakini göster
+        setTimeout(() => {
+            toast.classList.add('hidden');
+            console.log('Toast gizlendi');
+            this.isToastShowing = false;
+            
+            // 500ms sonra bir sonrakini göster
+            setTimeout(() => this.processToastQueue(), 500);
+        }, duration);
+    },
+
     /**
      * Tarihi formatla (DD/MM/YYYY - Türkçe format)
      */
@@ -69,18 +113,38 @@ const Utils = {
     },
 
     /**
-     * Toast mesaj goster
+     * Loading göstergesi göster
+     */
+    showLoading: function() {
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.textContent = '⏳ Yükleniyor...';
+            toast.className = 'toast info';
+            toast.classList.remove('hidden');
+        }
+    },
+
+    /**
+     * Loading göstergesini gizle
+     */
+    hideLoading: function() {
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.classList.add('hidden');
+        }
+    },
+
+    /**
+     * Loading göstergesi göster (Toast için)
      */
     showToast: function(message, type = 'success', duration = 3000) {
-        const toast = document.getElementById('toast');
-        if (!toast) return;
+        // Toast'u queue'ya ekle
+        this.toastQueue.push({ message, type, duration });
+        console.log('Toast queue\'ya eklendi:', { message, type, duration });
+        console.log('Queue uzunluğu:', this.toastQueue.length);
         
-        toast.textContent = message;
-        toast.className = `toast ${type}`;
-        
-        setTimeout(() => {
-            toast.classList.add('hidden');
-        }, duration);
+        // Queue'yu işle
+        this.processToastQueue();
     },
 
     /**

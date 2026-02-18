@@ -1162,38 +1162,37 @@
                             </form>
                         </div>
                     </div>
-                    <div class="data-section">
+                    <div class="google-sheets-data-section">
                         <div class="section-header">
-                            <h3>Buhar Veri Geçmişi</h3>
+                            <h3>Google Sheets Verileri</h3>
                             <div class="header-actions">
                                 <div class="record-count">
-                                    <span id="steam-count">0</span> kayıt bulundu
+                                    <span id="google-sheets-count">0</span> kayıt bulundu
                                 </div>
-                                <button id="export-steam-btn" class="btn-small">
-                                    <span>📊</span>
-                                    <span>Excel'e Aktar</span>
+                                <button id="refresh-google-sheets-btn" class="btn-small">
+                                    <span>🔄</span>
+                                    <span>Yenile</span>
                                 </button>
                             </div>
                         </div>
-                        <div class="steam-table-container">
-                            <table class="steam-table">
+                        <div class="google-sheets-table-container">
+                            <table class="google-sheets-table">
                                 <thead>
                                     <tr>
                                         <th>Tarih</th>
-                                        <th>Saat</th>
+                                        <th>Kayıt Zamanı</th>
                                         <th>Buhar Üretimi (ton)</th>
                                         <th>Notlar</th>
                                         <th>Kaydeden</th>
-                                        <th>İşlemler</th>
                                     </tr>
                                 </thead>
-                                <tbody id="steam-table-body">
+                                <tbody id="google-sheets-table-body">
                                     <!-- JavaScript tarafından doldurulacak -->
                                 </tbody>
                             </table>
-                            <div id="no-steam-data" class="no-data-message" style="display: none;">
-                                <p>📊 Henüz buhar verisi kaydı bulunmuyor.</p>
-                                <p>Yukarıdaki formu kullanarak ilk veriyi kaydedebilirsiniz.</p>
+                            <div id="no-google-sheets-data" class="no-data-message" style="display: none;">
+                                <p>📊 Google Sheets'ten henüz veri bulunmuyor.</p>
+                                <p>Yukarıdaki formu kullanarak veri kaydedebilirsiniz.</p>
                             </div>
                         </div>
                     </div>

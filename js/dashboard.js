@@ -158,7 +158,7 @@ const Dashboard = {
      * Event listener'ları ayarla
      */
     setupEventListeners: function() {
-        // Buhar ile ilgili listener'lar kaldırıldı
+        // Event listener'lar
     },
     
     /**

@@ -334,10 +334,46 @@ function getRecords(sheet, filters = {}) {
       const row = values[i];
       const record = {};
       
+      // Tarih ve saat için değişkenler
+      let dateValue = '';
+      let timeValue = '';
+      
       // Her header için doğru index'i kullan
       headers.forEach((header, headerIndex) => {
-        record[header] = row[headerIndex] || '';
+        let cellValue = row[headerIndex];
+
+        if (cellValue instanceof Date) {
+          // Eğer sadece saat ise - STRING olarak formatla
+          if (header === 'Saat') {
+            cellValue = Utilities.formatDate(
+              cellValue,
+              'Europe/Istanbul',
+              'HH:mm'
+            );
+            timeValue = cellValue; // Saati sakla (string)
+          } 
+          // Tarih ise
+          else if (header === 'Tarih') {
+            cellValue = Utilities.formatDate(
+              cellValue,
+              'Europe/Istanbul',
+              'yyyy-MM-dd'
+            );
+            dateValue = cellValue; // Tarihi sakla
+          }
+        }
+
+        record[header] = cellValue || '';
       });
+      
+      // Sıralama için standart tarih formatı ekle
+      if (dateValue && timeValue) {
+        record.sortDate = dateValue + 'T' + timeValue + ':00'; // ISO format: yyyy-MM-ddTHH:mm:ss
+      } else if (dateValue) {
+        record.sortDate = dateValue + 'T00:00:00'; // Saat yoksa 00:00
+      } else {
+        record.sortDate = '1970-01-01T00:00:00'; // Hatalı tarih için en eski tarih
+      }
       
       records.push(record);
     }
@@ -361,6 +397,16 @@ function getRecords(sheet, filters = {}) {
     if (filters.type === 'recent') {
       const limit = filters.limit || 10;
       records = records.slice(-limit).reverse();
+    }
+    
+    // Sadece bugünün verilerini getir
+    if (filters.type === 'today') {
+      const today = new Date();
+      const todayString = Utilities.formatDate(today, 'Europe/Istanbul', 'yyyy-MM-dd');
+      
+      records = records.filter(record => {
+        return record.date === todayString;
+      }).reverse();
     }
     
     if (filters.type === 'statistics') {
