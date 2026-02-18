@@ -3,25 +3,68 @@
  * Buhar verileri sayfası stil dosyası
  */
 
+/* ===== CSS VARIABLES ===== */
+:root {
+    /* Light Theme */
+    --bg-page: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --bg-card: rgba(255, 255, 255, 0.95);
+    --bg-table: #ffffff;
+    --bg-header: linear-gradient(135deg, #48bb78, #38a169);
+    --bg-button-primary: linear-gradient(135deg, #667eea, #764ba2);
+    --bg-button-secondary: #e2e8f0;
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
+    --text-white: #ffffff;
+    --border-color: #e2e8f0;
+    --border-light: rgba(255, 255, 255, 0.2);
+    --shadow-light: rgba(0, 0, 0, 0.1);
+    --shadow-medium: rgba(0, 0, 0, 0.05);
+    --hover-bg: #f8fafc;
+    --accent-color: #667eea;
+    --success-color: #48bb78;
+    --danger-color: #f56565;
+}
+
+.dark {
+    /* Dark Theme */
+    --bg-page: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    --bg-card: rgba(26, 32, 44, 0.95);
+    --bg-table: #1a202c;
+    --bg-header: linear-gradient(135deg, #2d3748, #1a202c);
+    --bg-button-primary: linear-gradient(135deg, #4299e1, #3182ce);
+    --bg-button-secondary: #2d3748;
+    --text-primary: #e5e7eb;
+    --text-secondary: #cbd5e0;
+    --text-white: #ffffff;
+    --border-color: #2d3748;
+    --border-light: rgba(255, 255, 255, 0.1);
+    --shadow-light: rgba(0, 0, 0, 0.3);
+    --shadow-medium: rgba(0, 0, 0, 0.2);
+    --hover-bg: #2d3748;
+    --accent-color: #4299e1;
+    --success-color: #38a169;
+    --danger-color: #e53e3e;
+}
+
 /* ===== BUHAR VERILERI SAYFA GENEL ===== */
 #buhar-page {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-page);
     min-height: 100vh;
 }
 
 #buhar-page .page-header {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--border-light);
     padding: 1.5rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px var(--shadow-light);
 }
 
 #buhar-page .page-header h1 {
-    color: #4a5568;
+    color: var(--text-primary);
     font-size: 2rem;
     font-weight: 700;
     margin: 0;
@@ -38,12 +81,12 @@
 
 /* ===== BUHAR FORM KONTAINER ===== */
 .steam-form-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card);
     backdrop-filter: blur(10px);
     border-radius: 12px;
     padding: 2rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px var(--shadow-light);
+    border: 1px solid var(--border-light);
     margin-bottom: 2rem;
 }
 
@@ -53,24 +96,24 @@
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .steam-form-container .form-header h3 {
-    color: #2d3748;
+    color: var(--text-primary);
     font-size: 1.5rem;
     font-weight: 600;
     margin: 0;
 }
 
 .date-time-info {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    background: var(--bg-button-primary);
+    color: var(--text-white);
     padding: 0.5rem 1rem;
     border-radius: 8px;
     font-size: 0.9rem;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px var(--shadow-light);
 }
 
 /* ===== FORM GRUPLARI ===== */
@@ -91,7 +134,7 @@
 }
 
 #steam-form label {
-    color: #4a5568;
+    color: var(--text-secondary);
     font-weight: 600;
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
@@ -109,21 +152,21 @@
 #steam-form input[type="time"],
 #steam-form input[type="number"],
 #steam-form textarea {
-    background: rgba(255, 255, 255, 0.9);
-    border: 2px solid #e2e8f0;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     padding: 0.75rem;
     font-size: 1rem;
     transition: all 0.3s ease;
-    color: #2d3748;
+    color: var(--text-primary);
 }
 
 #steam-form input:focus,
 #steam-form textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent-color);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    background: white;
+    background: var(--bg-table);
 }
 
 #steam-form textarea {
@@ -139,7 +182,7 @@
     justify-content: flex-end;
     margin-top: 2rem;
     padding-top: 1rem;
-    border-top: 2px solid #e2e8f0;
+    border-top: 2px solid var(--border-color);
 }
 
 .form-actions button {
@@ -158,8 +201,8 @@
 }
 
 .form-actions .btn-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    background: var(--bg-button-primary);
+    color: var(--text-white);
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
@@ -169,12 +212,12 @@
 }
 
 .form-actions .btn-secondary {
-    background: #e2e8f0;
-    color: #4a5568;
+    background: var(--bg-button-secondary);
+    color: var(--text-secondary);
 }
 
 .form-actions .btn-secondary:hover {
-    background: #cbd5e0;
+    background: var(--border-color);
     transform: translateY(-1px);
 }
 
@@ -184,12 +227,12 @@
 
 /* ===== GOOGLE SHEETS VERI BÖLÜMÜ ===== */
 .google-sheets-data-section {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card);
     backdrop-filter: blur(10px);
     border-radius: 12px;
     padding: 2rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px var(--shadow-light);
+    border: 1px solid var(--border-light);
     margin-top: 2rem;
 }
 
@@ -199,38 +242,40 @@
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .google-sheets-data-section .section-header h3 {
-    color: #2d3748;
+    color: var(--text-primary);
     font-size: 1.5rem;
     font-weight: 600;
     margin: 0;
 }
 
 .google-sheets-table-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card);
     backdrop-filter: blur(10px);
     border-radius: 12px;
     padding: 1.5rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px var(--shadow-light);
+    border: 1px solid var(--border-light);
     overflow-x: auto;
 }
 
 .google-sheets-table {
+    background: var(--bg-table);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px var(--shadow-light);
+    border: 1px solid var(--border-light);
     width: 100%;
     border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .google-sheets-table th {
-    background: linear-gradient(135deg, #48bb78, #38a169);
-    color: white;
+    background: var(--bg-header);
+    color: var(--text-white);
     padding: 1rem;
     text-align: left;
     font-weight: 600;
@@ -240,12 +285,13 @@
 
 .google-sheets-table td {
     padding: 1rem;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color);
     font-size: 0.875rem;
+    color: var(--text-primary);
 }
 
 .google-sheets-table tr:hover {
-    background: #f8fafc;
+    background: var(--hover-bg);
 }
 
 .google-sheets-table tr:last-child td {
@@ -261,8 +307,8 @@
 }
 
 .record-count {
-    background: linear-gradient(135deg, #48bb78, #38a169);
-    color: white;
+    background: var(--success-color);
+    color: var(--text-white);
     padding: 0.5rem 1rem;
     border-radius: 20px;
     font-size: 0.9rem;
@@ -281,8 +327,8 @@
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
-    background: linear-gradient(135deg, #4299e1, #3182ce);
-    color: white;
+    background: var(--accent-color);
+    color: var(--text-white);
     box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
 }
 
@@ -295,19 +341,19 @@
 .steam-table-container {
     overflow-x: auto;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px var(--shadow-light);
 }
 
 .steam-table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
+    background: var(--bg-table);
     font-size: 0.9rem;
 }
 
 .steam-table thead {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
+    background: var(--bg-header);
+    color: var(--text-white);
 }
 
 .steam-table th {
@@ -320,23 +366,23 @@
 }
 
 .steam-table tbody tr {
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color);
     transition: all 0.3s ease;
 }
 
 .steam-table tbody tr:hover {
-    background: rgba(102, 126, 234, 0.05);
+    background: var(--hover-bg);
     transform: scale(1.01);
 }
 
 .steam-table tbody tr.even-row {
-    background: rgba(248, 250, 252, 0.5);
+    background: var(--shadow-medium);
 }
 
 .steam-table td {
     padding: 0.75rem 1rem;
     border: none;
-    color: #2d3748;
+    color: var(--text-primary);
     font-weight: 500;
 }
 
@@ -357,8 +403,8 @@
 }
 
 .steam-table .btn-edit {
-    background: linear-gradient(135deg, #48bb78, #38a169);
-    color: white;
+    background: var(--success-color);
+    color: var(--text-white);
 }
 
 .steam-table .btn-edit:hover {
@@ -367,8 +413,8 @@
 }
 
 .steam-table .btn-delete {
-    background: linear-gradient(135deg, #f56565, #e53e3e);
-    color: white;
+    background: var(--danger-color);
+    color: var(--text-white);
 }
 
 .steam-table .btn-delete:hover {
@@ -380,10 +426,10 @@
 .no-data-message {
     text-align: center;
     padding: 3rem 2rem;
-    color: #718096;
-    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-secondary);
+    background: var(--bg-card);
     border-radius: 8px;
-    border: 2px dashed #cbd5e0;
+    border: 2px dashed var(--border-color);
 }
 
 .no-data-message p {

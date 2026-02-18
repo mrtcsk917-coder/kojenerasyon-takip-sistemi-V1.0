@@ -13,31 +13,31 @@
 
 .date-selector label {
     font-size: 0.9rem;
-    color: var(--text-secondary, #718096);
+    color: var(--text-secondary);
     font-weight: 500;
     white-space: nowrap;
 }
 
 .date-selector input[type="date"] {
     padding: 6px 12px;
-    border: 2px solid var(--border-color, #e2e8f0);
+    border: 2px solid var(--border-color);
     border-radius: 6px;
     font-size: 0.9rem;
-    background: var(--bg-primary, white);
-    color: var(--text-primary, #2d3748);
+    background: var(--bg-primary);
+    color: var(--text-primary);
     cursor: pointer;
     transition: all 0.3s ease;
     min-width: 140px;
 }
 
 .date-selector input[type="date"]:hover {
-    border-color: var(--primary-color, #667eea);
+    border-color: var(--accent-color);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .date-selector input[type="date"]:focus {
     outline: none;
-    border-color: var(--primary-color, #667eea);
+    border-color: var(--accent-color);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
     transform: translateY(-1px);
 }

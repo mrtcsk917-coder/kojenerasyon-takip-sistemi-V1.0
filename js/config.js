@@ -106,8 +106,8 @@ const CONFIG = {
     // Demo mod (API baglantisi yoksa)
     DEMO_MODE: false,
     
-    // Debug mod (sadece geliştirme için)
-    DEBUG_MODE: true,
+    // Debug modu (geliştirme için)
+    DEBUG_MODE: false,
     
     // Google Sheets Web App URL'leri (API Key gerekmez)
     GOOGLE_SHEETS_WEB_APP_URLS: {
