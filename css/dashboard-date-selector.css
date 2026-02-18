@@ -1,0 +1,145 @@
+/**
+ * KOJENERASYON TAKIP SISTEMI - DASHBOARD DATE SELECTOR
+ * Tarih seçici için özel stiller
+ */
+
+/* ===== DATE SELECTOR STYLES ===== */
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.date-selector label {
+    font-size: 0.9rem;
+    color: var(--text-secondary, #718096);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.date-selector input[type="date"] {
+    padding: 6px 12px;
+    border: 2px solid var(--border-color, #e2e8f0);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: var(--bg-primary, white);
+    color: var(--text-primary, #2d3748);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+}
+
+.date-selector input[type="date"]:hover {
+    border-color: var(--primary-color, #667eea);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.date-selector input[type="date"]:focus {
+    outline: none;
+    border-color: var(--primary-color, #667eea);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    transform: translateY(-1px);
+}
+
+/* ===== STEAM DATA HEADER UPDATE ===== */
+.steam-data-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.steam-data-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary, #2d3748);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .steam-data-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .date-selector {
+        justify-content: space-between;
+        margin-top: 0;
+    }
+    
+    .date-selector input[type="date"] {
+        flex: 1;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .steam-data-header h3 {
+        font-size: 1rem;
+    }
+    
+    .date-selector {
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+    }
+    
+    .date-selector input[type="date"] {
+        width: 100%;
+    }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+    .date-selector input[type="date"] {
+        background: var(--bg-secondary, #2d3748);
+        border-color: var(--border-color, #4a5568);
+        color: var(--text-primary, #e2e8f0);
+    }
+    
+    .date-selector input[type="date"]:hover {
+        border-color: var(--primary-color, #667eea);
+    }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes dateSelectorFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.date-selector {
+    animation: dateSelectorFadeIn 0.5s ease-out;
+}
+
+/* ===== CALENDAR ICON ===== */
+.date-selector {
+    position: relative;
+}
+
+.date-selector::after {
+    content: '📅';
+    position: absolute;
+    right: 35px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+@media (max-width: 480px) {
+    .date-selector::after {
+        right: 15px;
+    }
+}
