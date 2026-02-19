@@ -160,7 +160,7 @@ const Enerji = {
         if (!this.currentData.hours || this.currentData.hours.length === 0) {
             tbody.innerHTML = `
                 <tr class="empty-row">
-                    <td colspan="5">
+                    <td colspan="4">
                         <div class="empty-state">
                             <span class="empty-icon">⚠️</span>
                             <p>Bu vardiya için saat verisi bulunamadı</p>
@@ -195,24 +195,6 @@ const Enerji = {
                         <input type="number" class="reaktif-input" 
                                value="${record.reaktif || ''}" 
                                data-field="reaktif"
-                               data-hour="${hour}"
-                               min="0" step="0.001" 
-                               placeholder="0.000"
-                               onchange="Enerji.onInputChange(event)">
-                    </td>
-                    <td>
-                        <input type="number" class="aydem-aktif-input" 
-                               value="${record.aydemAktif || ''}" 
-                               data-field="aydemAktif"
-                               data-hour="${hour}"
-                               min="0" step="0.001" 
-                               placeholder="0.000"
-                               onchange="Enerji.onInputChange(event)">
-                    </td>
-                    <td>
-                        <input type="number" class="aydem-reaktif-input" 
-                               value="${record.aydemReaktif || ''}" 
-                               data-field="aydemReaktif"
                                data-hour="${hour}"
                                min="0" step="0.001" 
                                placeholder="0.000"
@@ -571,8 +553,8 @@ const Enerji = {
                     );
                     
                     if (!hasChanges) {
-                        // Değişiklik yoksa atla
-                        return;
+                        // Değişiklik yoksa devam et
+                        continue;
                     }
                     
                     // Update öncesi ID kontrolü
