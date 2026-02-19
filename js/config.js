@@ -112,7 +112,8 @@ const CONFIG = {
     // Google Sheets Web App URL'leri (API Key gerekmez)
     GOOGLE_SHEETS_WEB_APP_URLS: {
         buhar: 'https://script.google.com/macros/s/AKfycbxi8N33CjAJRWmUfQDS4D9sy-97N0Op6Bz85i9jsIhYruNqfidC7dXoxmYFBNxun_QI/exec',
-        saatlik: 'https://script.google.com/macros/s/AKfycbxQt6pson5CdJP83lw7JVkXX3a4v8fb-PfHZcqPDcbkaFe__RSz9pYp0smeneBpsksV/exec'
+        // Saatlik Enerji Verileri
+        saatlik: 'https://script.google.com/macros/s/AKfycbxkSKwnicC7H0LV0ThP-IsjTQuHZobDlusyo_vqM5ZB7DSRrtcjyuqS23gakjMm2GHx/exec',
         // Diğer modüller geçici olarak devre dışı
         // kojen_motor: 'URL',
         // kojen_enerji: 'URL',
