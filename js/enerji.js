@@ -278,13 +278,9 @@ const Enerji = {
             if (record) {
                 const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
                 const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
-                const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
-                const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
                 
                 if (aktifInput) aktifInput.value = record.aktif || '';
                 if (reaktifInput) reaktifInput.value = record.reaktif || '';
-                if (aydemAktifInput) aydemAktifInput.value = record.aydemAktif || '';
-                if (aydemReaktifInput) aydemReaktifInput.value = record.aydemReaktif || '';
                 
                 // Durumu güncelle
                 this.updateStatus(hour, record);
@@ -299,6 +295,7 @@ const Enerji = {
         try {
             const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.saatlik;
             if (!url || url === 'BURAYA_YENI_URL_GELECEK') {
+                console.log('❌ Saatlik enerji URL\'si yapılandırılmamış');
                 return;
             }
             
@@ -316,12 +313,20 @@ const Enerji = {
             
             if (response.ok) {
                 const result = await response.json();
+                
                 if (result.success && result.data) {
                     this.processGoogleSheetsRecords(result.data);
+                } else {
+                    console.log('❌ Google Sheets verisi alınamadı:', result.error);
+                    Utils.showToast('Google Sheets verileri alınamadı: ' + result.error, 'error');
                 }
+            } else {
+                console.log('❌ Google Sheets API hatası:', response.status);
+                Utils.showToast('Google Sheets API hatası: ' + response.status, 'error');
             }
         } catch (error) {
-            console.log('Google Sheets kayıtları yüklenemedi:', error);
+            console.log('💥 Google Sheets genel hata:', error);
+            Utils.showToast('Google Sheets bağlantı hatası: ' + error.message, 'error');
         }
     },
     
@@ -335,7 +340,18 @@ const Enerji = {
         records.forEach(record => {
             // Tarih ve vardiya eşleşmesi kontrolü
             if (record.Tarih === this.currentData.date && record.Vardiya === this.currentData.shift) {
-                const hour = record.Saat;
+                // ✅ Saat formatını düzelt - Excel tarih formatından HH:mm formatına çevir
+                let hour = record.Saat;
+                
+                if (hour && hour.includes('T')) {
+                    // Excel tarih formatı: 1899-12-30T06:03:04.000Z
+                    try {
+                        const date = new Date(hour);
+                        hour = date.toTimeString().slice(0, 5); // "06:03"
+                    } catch (error) {
+                        hour = '00:00'; // Varsayılan değer
+                    }
+                }
                 
                 // Google Sheets verisini frontend formatına çevir
                 const frontendRecord = {
@@ -344,7 +360,8 @@ const Enerji = {
                     reaktif: parseFloat(record['Reaktif Enerji (kVArh)']) || 0,
                     aydemAktif: parseFloat(record['Aydem Aktif']) || 0,
                     aydemReaktif: parseFloat(record['Aydem Reaktif']) || 0,
-                    timestamp: record['Kayıt Zamanı'],
+                    // ✅ Önce frontend timestamp, yoksa update zamanı, o da yoksa şimdi
+                    timestamp: record.timestamp || record.updatedAt || new Date().toISOString(),
                     updatedAt: record['Güncelleme Zamanı'],
                     editedBy: record['Güncelleyen'],
                     originalTimestamp: record['Orijinal Kayıt Zamanı'],
@@ -357,16 +374,12 @@ const Enerji = {
                 savedData[hour] = frontendRecord;
                 this.currentData.records[hour] = frontendRecord;
                 
-                // Input değerlerini güncelle
+                // ✅ Input değerlerini güncelle
                 const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
                 const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
-                const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
-                const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
                 
                 if (aktifInput) aktifInput.value = frontendRecord.aktif || '';
                 if (reaktifInput) reaktifInput.value = frontendRecord.reaktif || '';
-                if (aydemAktifInput) aydemAktifInput.value = frontendRecord.aydemAktif || '';
-                if (aydemReaktifInput) aydemReaktifInput.value = frontendRecord.aydemReaktif || '';
                 
                 // Durumu güncelle
                 this.updateStatus(hour, frontendRecord);
@@ -394,15 +407,11 @@ const Enerji = {
     saveSingleRecord: function(hour) {
         const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
         const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
-        const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
-        const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
         
         const aktif = parseFloat(aktifInput.value) || 0;
         const reaktif = parseFloat(reaktifInput.value) || 0;
-        const aydemAktif = parseFloat(aydemAktifInput.value) || 0;
-        const aydemReaktif = parseFloat(aydemReaktifInput.value) || 0;
         
-        if (aktif === 0 && reaktif === 0 && aydemAktif === 0 && aydemReaktif === 0) {
+        if (aktif === 0 && reaktif === 0) {
             Utils.showToast('Lütfen en az bir değer girin', 'warning');
             return;
         }
@@ -441,19 +450,11 @@ const Enerji = {
             if (existingRecord.reaktif !== reaktif) {
                 changes.push(`Reaktif: ${existingRecord.reaktif || 0} → ${reaktif}`);
             }
-            if (existingRecord.aydemAktif !== aydemAktif) {
-                changes.push(`Aydem Aktif: ${existingRecord.aydemAktif || 0} → ${aydemAktif}`);
-            }
-            if (existingRecord.aydemReaktif !== aydemReaktif) {
-                changes.push(`Aydem Reaktif: ${existingRecord.aydemReaktif || 0} → ${aydemReaktif}`);
-            }
             
             const updatedRecord = {
                 ...existingRecord,
                 aktif: aktif,
                 reaktif: reaktif,
-                aydemAktif: aydemAktif,
-                aydemReaktif: aydemReaktif,
                 updatedAt: new Date().toISOString(),
                 editedBy: Auth.getCurrentUser()?.username || 'unknown',
                 originalTimestamp: existingRecord.timestamp,
@@ -488,8 +489,6 @@ const Enerji = {
             id: Date.now().toString(), // ✅ ID EKLENDİ
             aktif: aktif,
             reaktif: reaktif,
-            aydemAktif: aydemAktif,
-            aydemReaktif: aydemReaktif,
             timestamp: new Date().toISOString(),
             date: this.currentData.date,
             shift: this.currentData.shift,
@@ -529,27 +528,21 @@ const Enerji = {
         this.currentData.hours.forEach(hour => {
             const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
             const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
-            const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
-            const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
             
             const aktif = parseFloat(aktifInput.value) || 0;
             const reaktif = parseFloat(reaktifInput.value) || 0;
-            const aydemAktif = parseFloat(aydemAktifInput.value) || 0;
-            const aydemReaktif = parseFloat(aydemReaktifInput.value) || 0;
             
-            if (aktif > 0 || reaktif > 0 || aydemAktif > 0 || aydemReaktif > 0) {
+            if (aktif > 0 || reaktif > 0) {
                 unsavedHours.push(hour);
                 
-                // ✅ Direkt kayıt mantığı - saveSingleRecord'ı çağırma
+                // Direkt kayıt mantığı - saveSingleRecord'ı çağırma
                 const existingRecord = this.currentData.records[hour];
                 
                 if (existingRecord && existingRecord.timestamp) {
-                    // ✅ Değişiklik kontrolü yap
+                    // Değişiklik kontrolü yap
                     const hasChanges = (
                         existingRecord.aktif !== aktif ||
-                        existingRecord.reaktif !== reaktif ||
-                        existingRecord.aydemAktif !== aydemAktif ||
-                        existingRecord.aydemReaktif !== aydemReaktif
+                        existingRecord.reaktif !== reaktif
                     );
                     
                     if (!hasChanges) {
@@ -567,12 +560,11 @@ const Enerji = {
                         ...existingRecord,
                         aktif: aktif,
                         reaktif: reaktif,
-                        aydemAktif: aydemAktif,
-                        aydemReaktif: aydemReaktif,
                         updatedAt: new Date().toISOString(),
                         editedBy: Auth.getCurrentUser()?.username || 'unknown',
                         originalTimestamp: existingRecord.timestamp,
-                        originalOperator: existingRecord.operator
+                        originalOperator: existingRecord.operator,
+                        changes: `Aktif: ${existingRecord.aktif || 0} → ${aktif}, Reaktif: ${existingRecord.reaktif || 0} → ${reaktif}`
                     };
                     
                     // LocalStorage'a güncelle
@@ -591,8 +583,6 @@ const Enerji = {
                         id: Date.now().toString(),
                         aktif: aktif,
                         reaktif: reaktif,
-                        aydemAktif: aydemAktif,
-                        aydemReaktif: aydemReaktif,
                         timestamp: new Date().toISOString(),
                         date: this.currentData.date,
                         shift: this.currentData.shift,
@@ -686,13 +676,9 @@ const Enerji = {
         // Input'ları temizle
         const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
         const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
-        const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
-        const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
         
         if (aktifInput) aktifInput.value = '';
         if (reaktifInput) reaktifInput.value = '';
-        if (aydemAktifInput) aydemAktifInput.value = '';
-        if (aydemReaktifInput) aydemReaktifInput.value = '';
         
         // Durumu güncelle
         this.updateStatus(hour, {});
