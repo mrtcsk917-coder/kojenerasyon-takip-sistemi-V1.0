@@ -52,19 +52,16 @@ function doPost(e) {
         sheet.getRange("H1").setValue("Aydem Reaktif");
         sheet.getRange("I1").setValue("Operator");
         sheet.getRange("J1").setValue("Kayıt Zamanı");
+        sheet.getRange("K1").setValue("Güncelleme Zamanı");
+        sheet.getRange("L1").setValue("Güncelleyen");
+        sheet.getRange("M1").setValue("Orijinal Kayıt Zamanı");
+        sheet.getRange("N1").setValue("Orijinal Operator");
         
         // Formatla
-        sheet.getRange("A1:J1").setFontWeight("bold");
-        sheet.autoResizeColumn(1);
-        sheet.autoResizeColumn(2);
-        sheet.autoResizeColumn(3);
-        sheet.autoResizeColumn(4);
-        sheet.autoResizeColumn(5);
-        sheet.autoResizeColumn(6);
-        sheet.autoResizeColumn(7);
-        sheet.autoResizeColumn(8);
-        sheet.autoResizeColumn(9);
-        sheet.autoResizeColumn(10);
+        sheet.getRange("A1:N1").setFontWeight("bold");
+        for (let i = 1; i <= 14; i++) {
+          sheet.autoResizeColumn(i);
+        }
       }
     }
     
@@ -212,6 +209,18 @@ function saveHourlyRecord(sheet, data) {
             minute: '2-digit',
             second: '2-digit'
           });
+          break;
+        case 'Güncelleme Zamanı':
+          value = data.updatedAt || '';
+          break;
+        case 'Güncelleyen':
+          value = data.editedBy || '';
+          break;
+        case 'Orijinal Kayıt Zamanı':
+          value = data.originalTimestamp || '';
+          break;
+        case 'Orijinal Operator':
+          value = data.originalOperator || '';
           break;
         default:
           value = data[header] || '';
@@ -477,7 +486,7 @@ function getHourlyHeaders(sheet) {
   } catch (error) {
     // Eğer sheet boşsa, manuel header'ları dön
     if (sheet.getName() === 'SaatlikEnerjiVerileri') {
-      return ['ID', 'Tarih', 'Vardiya', 'Saat', 'Aktif Enerji (MWh)', 'Reaktif Enerji (kVArh)', 'Aydem Aktif', 'Aydem Reaktif', 'Operator', 'Kayıt Zamanı'];
+      return ['ID', 'Tarih', 'Vardiya', 'Saat', 'Aktif Enerji (MWh)', 'Reaktif Enerji (kVArh)', 'Aydem Aktif', 'Aydem Reaktif', 'Operator', 'Kayıt Zamanı', 'Güncelleme Zamanı', 'Güncelleyen', 'Orijinal Kayıt Zamanı', 'Orijinal Operator'];
     }
     return [];
   }

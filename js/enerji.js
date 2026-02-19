@@ -326,11 +326,57 @@ const Enerji = {
         }
         
         // Önceden kayıt var mı kontrol et
-        if (this.currentData.records[hour] && this.currentData.records[hour].timestamp) {
-            Utils.showToast(`${hour} için zaten kayıt mevcut`, 'warning');
+        const existingRecord = this.currentData.records[hour];
+        if (existingRecord && existingRecord.timestamp) {
+            // Düzeltme modu sor
+            const confirmMessage = `${hour} için zaten kayıt mevcut:\n` +
+                `Aktif: ${existingRecord.aktif || 0}, Reaktif: ${existingRecord.reaktif || 0}\n` +
+                `Aydem Aktif: ${existingRecord.aydemAktif || 0}, Aydem Reaktif: ${existingRecord.aydemReaktif || 0}\n` +
+                `Kaydeden: ${existingRecord.operator}\n` +
+                `Kayıt zamanı: ${new Date(existingRecord.timestamp).toLocaleString('tr-TR')}\n\n` +
+                `Bu kaydı güncellemek istiyor musunuz?`;
+            
+            if (!confirm(confirmMessage)) {
+                Utils.showToast('Kayıt güncelleme iptal edildi', 'info');
+                return;
+            }
+            
+            // Düzeltme modu - logla
+            const updatedRecord = {
+                ...existingRecord,
+                aktif: aktif,
+                reaktif: reaktif,
+                aydemAktif: aydemAktif,
+                aydemReaktif: aydemReaktif,
+                updatedAt: new Date().toISOString(),
+                editedBy: Auth.getCurrentUser()?.username || 'unknown',
+                originalTimestamp: existingRecord.timestamp,
+                originalOperator: existingRecord.operator
+            };
+            
+            // LocalStorage'a güncelle
+            const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
+            let savedData = Utils.loadFromStorage(storageKey, {});
+            savedData[hour] = updatedRecord;
+            Utils.saveToStorage(storageKey, savedData);
+            
+            // Mevcut verileri güncelle
+            this.currentData.records[hour] = updatedRecord;
+            
+            // Durumu güncelle
+            this.updateStatus(hour, updatedRecord);
+            
+            // Toplamları güncelle
+            this.calculateTotals();
+            
+            Utils.showToast(`${hour} saat verisi güncellendi`, 'success');
+            
+            // API'ye gönder
+            this.sendToAPI(updatedRecord, 'update');
             return;
         }
         
+        // Yeni kayıt
         const record = {
             aktif: aktif,
             reaktif: reaktif,
@@ -340,7 +386,8 @@ const Enerji = {
             date: this.currentData.date,
             shift: this.currentData.shift,
             hour: hour,
-            operator: Auth.getCurrentUser()?.username || 'unknown'
+            operator: Auth.getCurrentUser()?.username || 'unknown',
+            isNewRecord: true
         };
         
         // LocalStorage'a kaydet
@@ -360,8 +407,8 @@ const Enerji = {
         
         Utils.showToast(`${hour} saat verisi kaydedildi`, 'success');
         
-        // API'ye gönder (varsa)
-        this.sendToAPI(record);
+        // API'ye gönder
+        this.sendToAPI(record, 'save');
     },
     
     /**
@@ -607,7 +654,7 @@ const Enerji = {
     /**
      * API'ye veri gönder
      */
-    sendToAPI: function(record) {
+    sendToAPI: function(record, action = 'save') {
         const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.saatlik;
         
         if (!url || url === 'BURAYA_YENI_URL_GELECEK') {
@@ -616,7 +663,7 @@ const Enerji = {
         }
         
         const formData = new FormData();
-        formData.append('action', 'save');
+        formData.append('action', action);
         formData.append('module', 'saatlik');
         formData.append('timestamp', new Date().toISOString());
         
@@ -632,8 +679,9 @@ const Enerji = {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                console.log('Saatlik enerji verisi API\'ye gönderildi:', data);
-                Utils.showToast('Veri Google Sheets\'e kaydedildi', 'success');
+                const actionText = action === 'update' ? 'güncellendi' : 'kaydedildi';
+                console.log(`Saatlik enerji verisi API'ye ${actionText}:`, data);
+                Utils.showToast(`Veri Google Sheets'e ${actionText}`, 'success');
             } else {
                 console.error('API hatası:', data.error);
                 Utils.showToast('Google Sheets hatası: ' + data.error, 'error');
