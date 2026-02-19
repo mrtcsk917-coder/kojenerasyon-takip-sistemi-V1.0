@@ -37,16 +37,8 @@ const Enerji = {
      * Sistemi başlat
      */
     init: function() {
-        // DOM'un tamamen yüklenmesini bekle
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.setupEventListeners();
-                this.setDefaultValues();
-            });
-        } else {
-            this.setupEventListeners();
-            this.setDefaultValues();
-        }
+        this.setupEventListeners();
+        this.setDefaultValues();
     },
     
     /**
@@ -87,36 +79,24 @@ const Enerji = {
      */
     setupEventListeners: function() {
         // Vardiya yükleme butonu
-        const loadShiftBtn = document.getElementById('load-shift-btn');
-        if (loadShiftBtn) {
-            loadShiftBtn.addEventListener('click', () => {
-                this.loadShiftData();
-            });
-        }
+        document.getElementById('load-shift-btn').addEventListener('click', () => {
+            this.loadShiftData();
+        });
         
         // Tümünü kaydet butonu
-        const saveAllBtn = document.getElementById('save-all-btn');
-        if (saveAllBtn) {
-            saveAllBtn.addEventListener('click', () => {
-                this.saveAllRecords();
-            });
-        }
+        document.getElementById('save-all-btn').addEventListener('click', () => {
+            this.saveAllRecords();
+        });
         
         // Temizle butonu
-        const clearBtn = document.getElementById('clear-btn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                this.clearCurrentShift();
-            });
-        }
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            this.clearCurrentShift();
+        });
         
         // Hızlı kaydet butonu
-        const quickSaveBtn = document.getElementById('quick-save-btn');
-        if (quickSaveBtn) {
-            quickSaveBtn.addEventListener('click', () => {
-                this.saveQuickEntry();
-            });
-        }
+        document.getElementById('quick-save-btn').addEventListener('click', () => {
+            this.saveQuickEntry();
+        });
         
         // Sayfa değişikliklerini izle
         this.setupPageObserver();
@@ -539,20 +519,110 @@ const Enerji = {
         this.sendToAPI(record, 'save');
     },
     
-    // Yeni kayıt
-    const record = {
-        id: Date.now().toString(), // ID EKLENDİ
-        aktif: aktif,
-        reaktif: reaktif,
-        aydemAktif: aydemAktif,
-        aydemReaktif: aydemReaktif,
-        timestamp: new Date().toISOString(),
-        date: this.currentData.date,
-        shift: this.currentData.shift,
-        hour: hour,
-        operator: Auth.getCurrentUser()?.username || 'unknown',
-        isNewRecord: true
-    };
+    /**
+     * Tüm kayıtları kaydet
+     */
+    saveAllRecords: function() {
+        const unsavedHours = [];
+        const savedRecords = [];
+        
+        this.currentData.hours.forEach(hour => {
+            const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
+            const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+            const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
+            const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
+            
+            const aktif = parseFloat(aktifInput.value) || 0;
+            const reaktif = parseFloat(reaktifInput.value) || 0;
+            const aydemAktif = parseFloat(aydemAktifInput.value) || 0;
+            const aydemReaktif = parseFloat(aydemReaktifInput.value) || 0;
+            
+            if (aktif > 0 || reaktif > 0 || aydemAktif > 0 || aydemReaktif > 0) {
+                unsavedHours.push(hour);
+                
+                // ✅ Direkt kayıt mantığı - saveSingleRecord'ı çağırma
+                const existingRecord = this.currentData.records[hour];
+                
+                if (existingRecord && existingRecord.timestamp) {
+                    // ✅ Değişiklik kontrolü yap
+                    const hasChanges = (
+                        existingRecord.aktif !== aktif ||
+                        existingRecord.reaktif !== reaktif ||
+                        existingRecord.aydemAktif !== aydemAktif ||
+                        existingRecord.aydemReaktif !== aydemReaktif
+                    );
+                    
+                    if (!hasChanges) {
+                        // Değişiklik yoksa atla
+                        return;
+                    }
+                    
+                    // Update öncesi ID kontrolü
+                    if (!existingRecord.id) {
+                        existingRecord.id = Date.now().toString();
+                    }
+                    
+                    // Update kaydı oluştur
+                    const updatedRecord = {
+                        ...existingRecord,
+                        aktif: aktif,
+                        reaktif: reaktif,
+                        aydemAktif: aydemAktif,
+                        aydemReaktif: aydemReaktif,
+                        updatedAt: new Date().toISOString(),
+                        editedBy: Auth.getCurrentUser()?.username || 'unknown',
+                        originalTimestamp: existingRecord.timestamp,
+                        originalOperator: existingRecord.operator
+                    };
+                    
+                    // LocalStorage'a güncelle
+                    const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
+                    let savedData = Utils.loadFromStorage(storageKey, {});
+                    savedData[hour] = updatedRecord;
+                    Utils.saveToStorage(storageKey, savedData);
+                    
+                    // Mevcut verileri güncelle
+                    this.currentData.records[hour] = updatedRecord;
+                    savedRecords.push({ record: updatedRecord, action: 'update' });
+                    
+                } else {
+                    // Yeni kayıt
+                    const record = {
+                        id: Date.now().toString(),
+                        aktif: aktif,
+                        reaktif: reaktif,
+                        aydemAktif: aydemAktif,
+                        aydemReaktif: aydemReaktif,
+                        timestamp: new Date().toISOString(),
+                        date: this.currentData.date,
+                        shift: this.currentData.shift,
+                        hour: hour,
+                        operator: Auth.getCurrentUser()?.username || 'unknown',
+                        isNewRecord: true
+                    };
+                    
+                    // LocalStorage'a kaydet
+                    const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
+                    let savedData = Utils.loadFromStorage(storageKey, {});
+                    savedData[hour] = record;
+                    Utils.saveToStorage(storageKey, savedData);
+                    
+                    // Mevcut verileri güncelle
+                    this.currentData.records[hour] = record;
+                    savedRecords.push({ record: record, action: 'save' });
+                }
+                
+                // Durumu güncelle
+                this.updateStatus(hour, this.currentData.records[hour]);
+            }
+        });
+        
+        // Toplamları güncelle
+        this.calculateTotals();
+        
+        // API'ye toplu gönder
+        savedRecords.forEach(({ record, action }) => {
+            this.sendToAPI(record, action);
         });
         
         if (unsavedHours.length === 0) {
