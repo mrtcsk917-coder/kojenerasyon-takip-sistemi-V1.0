@@ -462,6 +462,19 @@ const Enerji = {
                 const existingRecord = this.currentData.records[hour];
                 
                 if (existingRecord && existingRecord.timestamp) {
+                    // ✅ Değişiklik kontrolü yap
+                    const hasChanges = (
+                        existingRecord.aktif !== aktif ||
+                        existingRecord.reaktif !== reaktif ||
+                        existingRecord.aydemAktif !== aydemAktif ||
+                        existingRecord.aydemReaktif !== aydemReaktif
+                    );
+                    
+                    if (!hasChanges) {
+                        // Değişiklik yoksa atla
+                        return;
+                    }
+                    
                     // Update öncesi ID kontrolü
                     if (!existingRecord.id) {
                         existingRecord.id = Date.now().toString();
