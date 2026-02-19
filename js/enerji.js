@@ -275,6 +275,10 @@ const Enerji = {
      * Kayıtlı verileri yükle
      */
     loadSavedRecords: function() {
+        // ✅ Önce Google Sheets'ten verileri çek
+        this.loadGoogleSheetsRecords();
+        
+        // Sonra LocalStorage'dan yükle
         const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
         const savedData = Utils.loadFromStorage(storageKey, {});
         
@@ -304,6 +308,102 @@ const Enerji = {
                 this.updateStatus(hour, record);
             }
         });
+    },
+    
+    /**
+     * Google Sheets kayıtlarını yükle
+     */
+    loadGoogleSheetsRecords: async function() {
+        try {
+            const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.saatlik;
+            if (!url || url === 'BURAYA_YENI_URL_GELECEK') {
+                return;
+            }
+            
+            // Tarih ve vardiya filtresi ile verileri çek
+            const formData = new FormData();
+            formData.append('action', 'get');
+            formData.append('module', 'saatlik');
+            formData.append('date', this.currentData.date);
+            formData.append('shift', this.currentData.shift);
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.data) {
+                    this.processGoogleSheetsRecords(result.data);
+                }
+            }
+        } catch (error) {
+            console.log('Google Sheets kayıtları yüklenemedi:', error);
+        }
+    },
+    
+    /**
+     * Google Sheets kayıtlarını işle
+     */
+    processGoogleSheetsRecords: function(records) {
+        const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
+        let savedData = Utils.loadFromStorage(storageKey, {});
+        
+        records.forEach(record => {
+            // Tarih ve vardiya eşleşmesi kontrolü
+            if (record.Tarih === this.currentData.date && record.Vardiya === this.currentData.shift) {
+                const hour = record.Saat;
+                
+                // Google Sheets verisini frontend formatına çevir
+                const frontendRecord = {
+                    id: record.ID,
+                    aktif: parseFloat(record['Aktif Enerji (MWh)']) || 0,
+                    reaktif: parseFloat(record['Reaktif Enerji (kVArh)']) || 0,
+                    aydemAktif: parseFloat(record['Aydem Aktif']) || 0,
+                    aydemReaktif: parseFloat(record['Aydem Reaktif']) || 0,
+                    timestamp: record['Kayıt Zamanı'],
+                    updatedAt: record['Güncelleme Zamanı'],
+                    editedBy: record['Güncelleyen'],
+                    originalTimestamp: record['Orijinal Kayıt Zamanı'],
+                    originalOperator: record['Orijinal Operator'],
+                    changes: record['Değiştirilen Değerler'],
+                    operator: record.Operator
+                };
+                
+                // LocalStorage'a kaydet
+                savedData[hour] = frontendRecord;
+                this.currentData.records[hour] = frontendRecord;
+                
+                // Input değerlerini güncelle
+                const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
+                const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+                const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
+                const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
+                
+                if (aktifInput) aktifInput.value = frontendRecord.aktif || '';
+                if (reaktifInput) reaktifInput.value = frontendRecord.reaktif || '';
+                if (aydemAktifInput) aydemAktifInput.value = frontendRecord.aydemAktif || '';
+                if (aydemReaktifInput) aydemReaktifInput.value = frontendRecord.aydemReaktif || '';
+                
+                // Durumu güncelle
+                this.updateStatus(hour, frontendRecord);
+            }
+        });
+        
+        // LocalStorage'a kaydet
+        Utils.saveToStorage(storageKey, savedData);
+        
+        // Kayıt sayısını güncelle
+        const savedCount = Object.keys(this.currentData.records).length;
+        const totalCount = this.currentData.hours.length;
+        document.getElementById('record-count').textContent = 
+            `${savedCount}/${totalCount} kayıt`;
+        
+        // Toplamları güncelle
+        this.calculateTotals();
+        
+        Utils.showToast(`Google Sheets'ten ${records.length} kayıt yüklendi`, 'success');
     },
     
     /**
