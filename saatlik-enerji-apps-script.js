@@ -81,7 +81,12 @@ function doPost(e) {
         break;
         
       case 'update':
-        result = updateHourlyRecord(sheet, payload.id, payload);
+        // ✅ ID kontrolü yap
+        if (!payload.id) {
+          result = { success: false, error: 'Update için ID gerekli' };
+        } else {
+          result = updateHourlyRecord(sheet, payload.id, payload);
+        }
         break;
         
       case 'delete':
@@ -388,19 +393,37 @@ function getHourlyRecords(sheet, filters = {}) {
 function updateHourlyRecord(sheet, recordId, data) {
   try {
     const headers = getHourlyHeaders(sheet);
-    const idColumnIndex = headers.indexOf('ID');
-    
-    if (idColumnIndex === -1) {
-      return { success: false, error: 'ID kolonu bulunamadı' };
-    }
-    
     const dataRange = sheet.getDataRange();
     const values = dataRange.getValues();
     
-    // Kaydı bul
+    // ✅ Alan map'i - frontend ↔ apps script uyumlu
+    const fieldMap = {
+      id: 'ID',
+      date: 'Tarih',
+      shift: 'Vardiya',
+      hour: 'Saat',
+      aktif: 'Aktif Enerji (MWh)',
+      reaktif: 'Reaktif Enerji (kVArh)',
+      aydemAktif: 'Aydem Aktif',
+      aydemReaktif: 'Aydem Reaktif',
+      operator: 'Operator',
+      timestamp: 'Kayıt Zamanı',
+      updatedAt: 'Güncelleme Zamanı',
+      editedBy: 'Güncelleyen',
+      originalTimestamp: 'Orijinal Kayıt Zamanı',
+      originalOperator: 'Orijinal Operator'
+    };
+    
+    // Kaydı bul - TARIH + VARDİYA + SAATE göre bul
     let rowIndex = -1;
-    for (let i = 1; i < values.length; i++) {
-      if (values[i][idColumnIndex] === recordId) {
+    for (let i = 1; i < values.length; i++) { // Header satırını atla
+      const rowDate = String(values[i][headers.indexOf('Tarih')] || '');
+      const rowShift = String(values[i][headers.indexOf('Vardiya')] || '');
+      const rowHour = String(values[i][headers.indexOf('Saat')] || '');
+      const rowId = String(values[i][headers.indexOf('ID')] || '');
+      
+      // ✅ String karşılaştırma - tip uyumsuzluğu önle
+      if ((rowDate === String(data.date) && rowShift === String(data.shift) && rowHour === String(data.hour)) || rowId === String(recordId)) {
         rowIndex = i + 1; // 1-based index
         break;
       }
@@ -410,10 +433,17 @@ function updateHourlyRecord(sheet, recordId, data) {
       return { success: false, error: 'Kayıt bulunamadı' };
     }
     
-    // Güncelle
-    headers.forEach((header, index) => {
-      if (data[header] !== undefined) {
-        sheet.getRange(rowIndex, index + 1).setValue(data[header]);
+    // ✅ Map'li güncelle - frontend alan adları ile sheet header'ları eşleşir
+    Object.keys(fieldMap).forEach(key => {
+      if (data[key] !== undefined) {
+        const headerName = fieldMap[key];
+        const colIndex = headers.indexOf(headerName);
+        
+        if (colIndex !== -1) {
+          sheet.getRange(rowIndex, colIndex + 1).setValue(data[key]);
+        } else {
+          Logger.log(`Column not found: ${headerName} for key: ${key}`);
+        }
       }
     });
     
@@ -424,6 +454,7 @@ function updateHourlyRecord(sheet, recordId, data) {
       timestamp: new Date().toISOString()
     };
   } catch (error) {
+    Logger.log('Update error: ' + error.toString());
     return {
       success: false,
       error: error.toString()

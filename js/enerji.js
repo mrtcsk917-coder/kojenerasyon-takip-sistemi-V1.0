@@ -328,6 +328,16 @@ const Enerji = {
         // Önceden kayıt var mı kontrol et
         const existingRecord = this.currentData.records[hour];
         if (existingRecord && existingRecord.timestamp) {
+            // ✅ Update öncesi ID kontrolü - eski kayıtlar için uyumluluk
+            if (!existingRecord.id) {
+                existingRecord.id = Date.now().toString();
+                // LocalStorage'a ID'yi güncelle
+                const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
+                let savedData = Utils.loadFromStorage(storageKey, {});
+                savedData[hour] = existingRecord;
+                Utils.saveToStorage(storageKey, savedData);
+            }
+            
             // Düzeltme modu sor
             const confirmMessage = `${hour} için zaten kayıt mevcut:\n` +
                 `Aktif: ${existingRecord.aktif || 0}, Reaktif: ${existingRecord.reaktif || 0}\n` +
@@ -378,6 +388,7 @@ const Enerji = {
         
         // Yeni kayıt
         const record = {
+            id: Date.now().toString(), // ✅ ID EKLENDİ
             aktif: aktif,
             reaktif: reaktif,
             aydemAktif: aydemAktif,
