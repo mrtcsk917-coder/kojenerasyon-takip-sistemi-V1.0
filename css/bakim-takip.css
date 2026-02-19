@@ -7,21 +7,18 @@
     padding: 20px;
     height: calc(100vh - 120px);
     overflow-y: auto;
-    background: var(--bg-page);
 }
 
 /* Page Header */
 #bakim-page .page-header {
-    background: var(--bg-header);
-    backdrop-filter: blur(10px);
-    color: var(--text-white);
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+    color: white;
     padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 20px;
-    box-shadow: var(--shadow-light);
 }
 
 /* Admin Badge */
@@ -29,11 +26,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--bg-card);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.2);
     padding: 8px 16px;
     border-radius: 20px;
-    border: 1px solid var(--border-light);
+    backdrop-filter: blur(10px);
     font-size: 14px;
     font-weight: 500;
 }

@@ -54,7 +54,7 @@ const App = {
                 if (window.Dashboard) Dashboard.init();
                 break;
             case 'saatlik':
-                if (window.SaatlikSistemi) SaatlikSistemi.init();
+                if (window.Enerji) Enerji.init();
                 break;
             case 'gunluk-enerji':
                 if (window.Enerji) Enerji.init();

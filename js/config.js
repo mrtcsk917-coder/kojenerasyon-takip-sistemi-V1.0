@@ -106,16 +106,16 @@ const CONFIG = {
     // Demo mod (API baglantisi yoksa)
     DEMO_MODE: false,
     
-    // Debug modu (geliştirme için)
-    DEBUG_MODE: false,
+    // Debug mod (sadece geliştirme için)
+    DEBUG_MODE: true,
     
     // Google Sheets Web App URL'leri (API Key gerekmez)
     GOOGLE_SHEETS_WEB_APP_URLS: {
-        buhar: 'https://script.google.com/macros/s/AKfycbxi8N33CjAJRWmUfQDS4D9sy-97N0Op6Bz85i9jsIhYruNqfidC7dXoxmYFBNxun_QI/exec'
+        buhar: 'https://script.google.com/macros/s/AKfycbxi8N33CjAJRWmUfQDS4D9sy-97N0Op6Bz85i9jsIhYruNqfidC7dXoxmYFBNxun_QI/exec',
+        saatlik: 'https://script.google.com/macros/s/AKfycbzvKWlftn4Z8TG0-smrtGzSdNLmZA_2bxZsk7OVLvFs3XOQYw2gJlUxsoanzfKIfnlJ/exec'
         // Diğer modüller geçici olarak devre dışı
         // kojen_motor: 'URL',
         // kojen_enerji: 'URL',
-        // saatlik: 'URL',
         // gunluk_enerji: 'URL',
         // vardiya: 'URL',
         // bakim: 'URL',

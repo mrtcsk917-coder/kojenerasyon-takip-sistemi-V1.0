@@ -189,7 +189,7 @@ const Enerji = {
                                data-hour="${hour}"
                                min="0" step="0.001" 
                                placeholder="0.000"
-                               onchange="SaatlikSistemi.onInputChange(event)">
+                               onchange="Enerji.onInputChange(event)">
                     </td>
                     <td>
                         <input type="number" class="reaktif-input" 
@@ -198,7 +198,25 @@ const Enerji = {
                                data-hour="${hour}"
                                min="0" step="0.001" 
                                placeholder="0.000"
-                               onchange="SaatlikSistemi.onInputChange(event)">
+                               onchange="Enerji.onInputChange(event)">
+                    </td>
+                    <td>
+                        <input type="number" class="aydem-aktif-input" 
+                               value="${record.aydemAktif || ''}" 
+                               data-field="aydemAktif"
+                               data-hour="${hour}"
+                               min="0" step="0.001" 
+                               placeholder="0.000"
+                               onchange="Enerji.onInputChange(event)">
+                    </td>
+                    <td>
+                        <input type="number" class="aydem-reaktif-input" 
+                               value="${record.aydemReaktif || ''}" 
+                               data-field="aydemReaktif"
+                               data-hour="${hour}"
+                               min="0" step="0.001" 
+                               placeholder="0.000"
+                               onchange="Enerji.onInputChange(event)">
                     </td>
                     <td>
                         <span class="status-badge ${this.getStatusClass(record)}" 
@@ -209,11 +227,11 @@ const Enerji = {
                     <td>
                         <div class="action-buttons">
                             <button type="button" class="btn-small btn-save" 
-                                    onclick="SaatlikSistemi.saveSingleRecord('${hour}')">
+                                    onclick="Enerji.saveSingleRecord('${hour}')">
                                 💾
                             </button>
                             <button type="button" class="btn-small btn-delete" 
-                                    onclick="SaatlikSistemi.deleteRecord('${hour}')">
+                                    onclick="Enerji.deleteRecord('${hour}')">
                                 🗑️
                             </button>
                         </div>
@@ -226,11 +244,28 @@ const Enerji = {
     },
     
     /**
+     * Türkçe tarih formatı
+     */
+    formatTurkishDate: function(dateString) {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        
+        return `${day}.${month}.${year}`;
+    },
+    
+    /**
      * Başlıkları güncelle
      */
     updateHeaders: function() {
+        // Tarihi Türkçe formatına çevir
+        const formattedDate = this.formatTurkishDate(this.currentData.date);
+        
         document.getElementById('shift-title').textContent = 
-            `${this.SHIFT_TITLES[this.currentData.shift]} - ${this.currentData.date}`;
+            `${this.SHIFT_TITLES[this.currentData.shift]} - ${formattedDate}`;
         
         document.getElementById('shift-time').textContent = 
             this.SHIFT_TIMES[this.currentData.shift];
@@ -257,9 +292,13 @@ const Enerji = {
             if (record) {
                 const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
                 const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+                const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
+                const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
                 
                 if (aktifInput) aktifInput.value = record.aktif || '';
                 if (reaktifInput) reaktifInput.value = record.reaktif || '';
+                if (aydemAktifInput) aydemAktifInput.value = record.aydemAktif || '';
+                if (aydemReaktifInput) aydemReaktifInput.value = record.aydemReaktif || '';
                 
                 // Durumu güncelle
                 this.updateStatus(hour, record);
@@ -273,11 +312,15 @@ const Enerji = {
     saveSingleRecord: function(hour) {
         const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
         const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+        const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
+        const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
         
         const aktif = parseFloat(aktifInput.value) || 0;
         const reaktif = parseFloat(reaktifInput.value) || 0;
+        const aydemAktif = parseFloat(aydemAktifInput.value) || 0;
+        const aydemReaktif = parseFloat(aydemReaktifInput.value) || 0;
         
-        if (aktif === 0 && reaktif === 0) {
+        if (aktif === 0 && reaktif === 0 && aydemAktif === 0 && aydemReaktif === 0) {
             Utils.showToast('Lütfen en az bir değer girin', 'warning');
             return;
         }
@@ -291,6 +334,8 @@ const Enerji = {
         const record = {
             aktif: aktif,
             reaktif: reaktif,
+            aydemAktif: aydemAktif,
+            aydemReaktif: aydemReaktif,
             timestamp: new Date().toISOString(),
             date: this.currentData.date,
             shift: this.currentData.shift,
@@ -328,11 +373,15 @@ const Enerji = {
         this.currentData.hours.forEach(hour => {
             const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
             const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+            const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
+            const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
             
             const aktif = parseFloat(aktifInput.value) || 0;
             const reaktif = parseFloat(reaktifInput.value) || 0;
+            const aydemAktif = parseFloat(aydemAktifInput.value) || 0;
+            const aydemReaktif = parseFloat(aydemReaktifInput.value) || 0;
             
-            if (aktif > 0 || reaktif > 0) {
+            if (aktif > 0 || reaktif > 0 || aydemAktif > 0 || aydemReaktif > 0) {
                 unsavedHours.push(hour);
                 this.saveSingleRecord(hour);
             }
@@ -399,9 +448,13 @@ const Enerji = {
         // Input'ları temizle
         const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
         const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+        const aydemAktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemAktif"]`);
+        const aydemReaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aydemReaktif"]`);
         
         if (aktifInput) aktifInput.value = '';
         if (reaktifInput) reaktifInput.value = '';
+        if (aydemAktifInput) aydemAktifInput.value = '';
+        if (aydemReaktifInput) aydemReaktifInput.value = '';
         
         // Durumu güncelle
         this.updateStatus(hour, {});
@@ -555,16 +608,41 @@ const Enerji = {
      * API'ye veri gönder
      */
     sendToAPI: function(record) {
-        if (typeof SheetsAPI === 'undefined' || !SheetsAPI.getScriptUrl) return;
+        const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.saatlik;
         
-        SheetsAPI.saveHourlyData(record)
-            .then(response => {
-                console.log('API kaydı başarılı:', response);
-            })
-            .catch(error => {
-                console.error('API kaydı hatası:', error);
-                // LocalStorage'da kaldı, sonra tekrar denenecek
-            });
+        if (!url || url === 'BURAYA_YENI_URL_GELECEK') {
+            console.log('Saatlik enerji URL\'si yapılandırılmamış');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('action', 'save');
+        formData.append('module', 'saatlik');
+        formData.append('timestamp', new Date().toISOString());
+        
+        // Verileri ekle
+        Object.keys(record).forEach(key => {
+            formData.append(key, record[key]);
+        });
+        
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Saatlik enerji verisi API\'ye gönderildi:', data);
+                Utils.showToast('Veri Google Sheets\'e kaydedildi', 'success');
+            } else {
+                console.error('API hatası:', data.error);
+                Utils.showToast('Google Sheets hatası: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('API gönderim hatası:', error);
+            Utils.showToast('İnternet bağlantısı hatası', 'error');
+        });
     }
 };
 

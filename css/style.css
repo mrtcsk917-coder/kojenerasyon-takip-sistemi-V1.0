@@ -1,78 +1,35 @@
-/* ===== CSS VARIABLES ===== */
+/* ===== CSS Variables ===== */
 :root {
-    /* Light Theme (Default) */
-    --bg-page: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --bg-card: rgba(255, 255, 255, 0.95);
-    --bg-table: #ffffff;
-    --bg-header: linear-gradient(135deg, #48bb78, #38a169);
-    --bg-button-primary: linear-gradient(135deg, #667eea, #764ba2);
-    --bg-button-secondary: #e2e8f0;
-    --bg-primary: #fafafa;
-    --bg-secondary: #f1f5f9;
-    --bg-tertiary: #e2e8f0;
-    --text-primary: #2d3748;
-    --text-secondary: #4a5568;
-    --text-tertiary: #64748b;
-    --text-white: #ffffff;
-    --border-color: #e2e8f0;
-    --border-light: rgba(255, 255, 255, 0.2);
-    --shadow-light: rgba(0, 0, 0, 0.1);
-    --shadow-medium: rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.05);
-    --hover-bg: #f8fafc;
-    --accent-color: #667eea;
     --primary-color: #1d4ed8;
     --primary-hover: #1e40af;
     --secondary-color: #475569;
-    --success-color: #48bb78;
+    --success-color: #047857;
     --warning-color: #ca8a04;
     --error-color: #b91c1c;
     --info-color: #1e40af;
+    
+    /* Light Theme (Default) - Açık Renkler */
+    --bg-primary: #fafafa;
+    --bg-secondary: #f1f5f9;
+    --bg-tertiary: #e2e8f0;
+    --card-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #334155;
+    --text-tertiary: #64748b;
+    --border-color: #cbd5e1;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.05);
     --sidebar-width: 320px;
     --header-height: 70px;
 }
 
-.dark {
-    /* Dark Theme */
-    --bg-page: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-    --bg-card: rgba(26, 32, 44, 0.95);
-    --bg-table: #1a202c;
-    --bg-header: linear-gradient(135deg, #2d3748, #1a202c);
-    --bg-button-primary: linear-gradient(135deg, #4299e1, #3182ce);
-    --bg-button-secondary: #2d3748;
-    --bg-primary: #1a202c;
-    --bg-secondary: #2d3748;
-    --bg-tertiary: #4a5568;
-    --text-primary: #e5e7eb;
-    --text-secondary: #cbd5e0;
-    --text-tertiary: #a0aec0;
-    --text-white: #ffffff;
-    --border-color: #2d3748;
-    --border-light: rgba(255, 255, 255, 0.1);
-    --shadow-light: rgba(0, 0, 0, 0.3);
-    --shadow-medium: rgba(0, 0, 0, 0.2);
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.3);
-    --hover-bg: #2d3748;
-    --accent-color: #4299e1;
-    --primary-color: #3182ce;
-    --primary-hover: #2c5282;
-    --secondary-color: #718096;
-    --success-color: #38a169;
-    --warning-color: #d69e2e;
-    --error-color: #e53e3e;
-    --info-color: #3182ce;
-}
-
 /* Buhar Input Section Styles */
 .steam-input-section {
-    background: var(--bg-card);
-    backdrop-filter: blur(10px);
+    background: var(--card-bg);
     border-radius: 12px;
     padding: 24px;
-    box-shadow: var(--shadow-light);
-    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
 }
 
 .steam-input-section h2 {
