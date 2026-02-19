@@ -414,16 +414,13 @@ function updateHourlyRecord(sheet, recordId, data) {
       originalOperator: 'Orijinal Operator'
     };
     
-    // Kaydı bul - TARIH + VARDİYA + SAATE göre bul
+    // Kaydı bul - SADECE ID'ye göre bul
     let rowIndex = -1;
     for (let i = 1; i < values.length; i++) { // Header satırını atla
-      const rowDate = String(values[i][headers.indexOf('Tarih')] || '');
-      const rowShift = String(values[i][headers.indexOf('Vardiya')] || '');
-      const rowHour = String(values[i][headers.indexOf('Saat')] || '');
       const rowId = String(values[i][headers.indexOf('ID')] || '');
       
-      // ✅ String karşılaştırma - tip uyumsuzluğu önle
-      if ((rowDate === String(data.date) && rowShift === String(data.shift) && rowHour === String(data.hour)) || rowId === String(recordId)) {
+      // ✅ SADECE ID'ye göre bul - date/shift/hour不重要
+      if (rowId === String(recordId)) {
         rowIndex = i + 1; // 1-based index
         break;
       }
