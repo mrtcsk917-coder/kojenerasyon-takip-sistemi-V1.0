@@ -56,10 +56,11 @@ function doPost(e) {
         sheet.getRange("L1").setValue("Güncelleyen");
         sheet.getRange("M1").setValue("Orijinal Kayıt Zamanı");
         sheet.getRange("N1").setValue("Orijinal Operator");
+        sheet.getRange("O1").setValue("Değiştirilen Değerler");
         
         // Formatla
-        sheet.getRange("A1:N1").setFontWeight("bold");
-        for (let i = 1; i <= 14; i++) {
+        sheet.getRange("A1:O1").setFontWeight("bold");
+        for (let i = 1; i <= 15; i++) {
           sheet.autoResizeColumn(i);
         }
       }
@@ -226,6 +227,9 @@ function saveHourlyRecord(sheet, data) {
           break;
         case 'Orijinal Operator':
           value = data.originalOperator || '';
+          break;
+        case 'Değiştirilen Değerler':
+          value = data.changes || '';
           break;
         default:
           value = data[header] || '';
@@ -411,7 +415,8 @@ function updateHourlyRecord(sheet, recordId, data) {
       updatedAt: 'Güncelleme Zamanı',
       editedBy: 'Güncelleyen',
       originalTimestamp: 'Orijinal Kayıt Zamanı',
-      originalOperator: 'Orijinal Operator'
+      originalOperator: 'Orijinal Operator',
+      changes: 'Değiştirilen Değerler'
     };
     
     // Kaydı bul - SADECE ID'ye göre bul
@@ -514,7 +519,7 @@ function getHourlyHeaders(sheet) {
   } catch (error) {
     // Eğer sheet boşsa, manuel header'ları dön
     if (sheet.getName() === 'SaatlikEnerjiVerileri') {
-      return ['ID', 'Tarih', 'Vardiya', 'Saat', 'Aktif Enerji (MWh)', 'Reaktif Enerji (kVArh)', 'Aydem Aktif', 'Aydem Reaktif', 'Operator', 'Kayıt Zamanı', 'Güncelleme Zamanı', 'Güncelleyen', 'Orijinal Kayıt Zamanı', 'Orijinal Operator'];
+      return ['ID', 'Tarih', 'Vardiya', 'Saat', 'Aktif Enerji (MWh)', 'Reaktif Enerji (kVArh)', 'Aydem Aktif', 'Aydem Reaktif', 'Operator', 'Kayıt Zamanı', 'Güncelleme Zamanı', 'Güncelleyen', 'Orijinal Kayıt Zamanı', 'Orijinal Operator', 'Değiştirilen Değerler'];
     }
     return [];
   }
