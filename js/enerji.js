@@ -37,8 +37,16 @@ const Enerji = {
      * Sistemi başlat
      */
     init: function() {
-        this.setupEventListeners();
-        this.setDefaultValues();
+        // DOM'un tamamen yüklenmesini bekle
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.setupEventListeners();
+                this.setDefaultValues();
+            });
+        } else {
+            this.setupEventListeners();
+            this.setDefaultValues();
+        }
     },
     
     /**
@@ -79,24 +87,36 @@ const Enerji = {
      */
     setupEventListeners: function() {
         // Vardiya yükleme butonu
-        document.getElementById('load-shift-btn').addEventListener('click', () => {
-            this.loadShiftData();
-        });
+        const loadShiftBtn = document.getElementById('load-shift-btn');
+        if (loadShiftBtn) {
+            loadShiftBtn.addEventListener('click', () => {
+                this.loadShiftData();
+            });
+        }
         
         // Tümünü kaydet butonu
-        document.getElementById('save-all-btn').addEventListener('click', () => {
-            this.saveAllRecords();
-        });
+        const saveAllBtn = document.getElementById('save-all-btn');
+        if (saveAllBtn) {
+            saveAllBtn.addEventListener('click', () => {
+                this.saveAllRecords();
+            });
+        }
         
         // Temizle butonu
-        document.getElementById('clear-btn').addEventListener('click', () => {
-            this.clearCurrentShift();
-        });
+        const clearBtn = document.getElementById('clear-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                this.clearCurrentShift();
+            });
+        }
         
         // Hızlı kaydet butonu
-        document.getElementById('quick-save-btn').addEventListener('click', () => {
-            this.saveQuickEntry();
-        });
+        const quickSaveBtn = document.getElementById('quick-save-btn');
+        if (quickSaveBtn) {
+            quickSaveBtn.addEventListener('click', () => {
+                this.saveQuickEntry();
+            });
+        }
         
         // Sayfa değişikliklerini izle
         this.setupPageObserver();
