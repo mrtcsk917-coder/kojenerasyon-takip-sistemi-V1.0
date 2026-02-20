@@ -404,7 +404,7 @@ const Enerji = {
     /**
      * Tek kayıt kaydet - GÜNCELLENMİŞ VERSİYON
      */
-    saveSingleRecord: function (hour) {
+    saveSingleRecord: async function (hour) {
         try {
             const aktifInput = document.querySelector(
                 `[data-hour="${hour}"][data-field="aktif"]` 
@@ -471,8 +471,8 @@ const Enerji = {
             // 🧠 Frontend state
             this.currentData.records[hour] = record;
 
-            // 📤 API
-            this.sendToAPI(record, action);
+            // 📤 API - await ile bekle (sıralı gönderim için)
+            const apiResult = await this.sendToAPI(record, action);
 
             // 🟢 UI
             const statusEl = document.getElementById(`status-${hour.replace(':', '')}`);
@@ -483,7 +483,7 @@ const Enerji = {
 
             Utils.showToast(`${hour} saat verisi kaydedildi`, 'success');
 
-            return { success: true, action };
+            return { success: true, action, apiResult };
 
         } catch (err) {
             console.error('saveSingleRecord error:', err);
@@ -493,9 +493,9 @@ const Enerji = {
     },
 
     /**
-     * Tüm kayıtları kaydet
+     * Tüm kayıtları kaydet - SIRALI GÖNDERİM
      */
-    saveAllRecords: function() {
+    saveAllRecords: async function() {
         const results = [];
         const unsavedHours = [];
         
@@ -519,9 +519,15 @@ const Enerji = {
             
             unsavedHours.push(hour);
             
-            // ✅ TEK KAYNAK: saveSingleRecord kullan
-            const result = this.saveSingleRecord(hour);
+            // ✅ TEK KAYNAK: saveSingleRecord kullan (await ile)
+            const result = await this.saveSingleRecord(hour);
             results.push({ hour, ...result });
+            
+            // ✅ API lock çakışmasını önlemek için ekstra 300ms bekle
+            if (result.success) {
+                console.log(`⏳ ${hour} tamamlandı, sonrakine geçiliyor...`);
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
         }
         
         // Toplamları güncelle
@@ -532,7 +538,7 @@ const Enerji = {
         const skippedCount = results.filter(r => r.skipped).length;
         const errorCount = results.filter(r => r.error).length;
         
-        console.log('� saveAllRecords özeti:', {
+        console.log('📊 saveAllRecords özeti:', {
             toplam: results.length,
             kaydedilen: savedCount,
             atlanan: skippedCount,
@@ -835,14 +841,14 @@ const Enerji = {
     },
     
     /**
-     * API'ye veri gönder
+     * API'ye veri gönder - Promise döndürür
      */
     sendToAPI: function(record, action = 'save') {
         const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.saatlik;
         
         if (!url || url === 'BURAYA_YENI_URL_GELECEK') {
             console.log('❌ Saatlik enerji URL\'si yapılandırılmamış');
-            return;
+            return Promise.resolve({ skipped: true, reason: 'no_url' });
         }
         
         console.log('📤 API\'ye gönderiliyor:', {
@@ -864,7 +870,8 @@ const Enerji = {
             formData.append(key, record[key]);
         });
         
-        fetch(url, {
+        // ✅ Promise döndür - böylece await edebiliriz
+        return fetch(url, {
             method: 'POST',
             body: formData
         })
@@ -874,14 +881,17 @@ const Enerji = {
                 const actionText = action === 'update' ? 'güncellendi' : 'kaydedildi';
                 console.log(`✅ Saatlik enerji verisi API'ye ${actionText}:`, data);
                 Utils.showToast(`Veri Google Sheets'e ${actionText}`, 'success');
+                return { success: true, data };
             } else {
                 console.error('❌ API hatası:', data.error);
                 Utils.showToast('Google Sheets hatası: ' + data.error, 'error');
+                return { error: true, message: data.error };
             }
         })
         .catch(error => {
             console.error('💥 API gönderim hatası:', error);
             Utils.showToast('İnternet bağlantısı hatası: ' + error.message, 'error');
+            return { error: true, message: error.message };
         });
     }
 };
