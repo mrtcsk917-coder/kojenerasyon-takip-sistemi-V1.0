@@ -402,223 +402,229 @@ const Enerji = {
     },
     
     /**
-     * Tek kayıt kaydet
+     * Tek kayıt kaydet - GÜNCELLENMİŞ VERSİYON
      */
-    saveSingleRecord: function(hour) {
-        const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
-        const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+    saveSingleRecord: function (hour) {
+        try {
+            const aktifInput = document.querySelector(
+                `[data-hour="${hour}"][data-field="aktif"]` 
+            );
+            const reaktifInput = document.querySelector(
+                `[data-hour="${hour}"][data-field="reaktif"]` 
+            );
+
+            const aktif = parseFloat(aktifInput?.value) || 0;
+            const reaktif = parseFloat(reaktifInput?.value) || 0;
+
+            if (aktif <= 0 && reaktif <= 0) {
+                return { skipped: true };
+            }
+
+            // 🔐 TEK KAYNAK: LocalStorage
+            const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
+            const savedData = Utils.loadFromStorage(storageKey, {});
+            const existingRecord = savedData[hour];
+
+            let record;
+            let action;
+
+            // 🔁 UPDATE
+            if (existingRecord && existingRecord.timestamp) {
+                const hasChanges =
+                    existingRecord.aktif !== aktif ||
+                    existingRecord.reaktif !== reaktif;
+
+                if (!hasChanges) {
+                    return { skipped: true };
+                }
+
+                record = {
+                    ...existingRecord,
+                    aktif,
+                    reaktif,
+                    updatedAt: new Date().toISOString(),
+                    editedBy: Auth.getCurrentUser()?.username || 'unknown'
+                };
+
+                action = 'update';
+            }
+            // ➕ YENİ KAYIT
+            else {
+                record = {
+                    id: Date.now().toString(),
+                    aktif,
+                    reaktif,
+                    timestamp: new Date().toISOString(),
+                    date: this.currentData.date,
+                    shift: this.currentData.shift,
+                    hour,
+                    operator: Auth.getCurrentUser()?.username || 'unknown'
+                };
+
+                action = 'save';
+            }
+
+            // 💾 LocalStorage
+            savedData[hour] = record;
+            Utils.saveToStorage(storageKey, savedData);
+
+            // 🧠 Frontend state
+            this.currentData.records[hour] = record;
+
+            // 📤 API
+            this.sendToAPI(record, action);
+
+            // 🟢 UI
+            const statusEl = document.getElementById(`status-${hour.replace(':', '')}`);
+            if (statusEl) {
+                statusEl.className = 'status-badge status-saved';
+                statusEl.textContent = 'Kaydedildi';
+            }
+
+            Utils.showToast(`${hour} saat verisi kaydedildi`, 'success');
+
+            return { success: true, action };
+
+        } catch (err) {
+            console.error('saveSingleRecord error:', err);
+            Utils.showToast(`${hour} kaydı sırasında hata oluştu`, 'error');
+            return { error: true };
+        }
+    },
+
+    /**
+     * Tüm kayıtları kaydet
+     */
+    saveAllRecords: function() {
+        const results = [];
+        const unsavedHours = [];
         
-        const aktif = parseFloat(aktifInput.value) || 0;
-        const reaktif = parseFloat(reaktifInput.value) || 0;
+        // ✅ for...of kullan - continue destekler
+        for (const hour of this.currentData.hours) {
+            const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
+            const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+            
+            if (!aktifInput || !reaktifInput) {
+                console.warn(`⚠️ Input bulunamadı: ${hour}`);
+                continue;
+            }
+            
+            const aktif = parseFloat(aktifInput.value) || 0;
+            const reaktif = parseFloat(reaktifInput.value) || 0;
+            
+            // Değer yoksa atla
+            if (aktif === 0 && reaktif === 0) {
+                continue;
+            }
+            
+            unsavedHours.push(hour);
+            
+            // ✅ TEK KAYNAK: saveSingleRecord kullan
+            const result = this.saveSingleRecord(hour);
+            results.push({ hour, ...result });
+        }
+        
+        // Toplamları güncelle
+        this.calculateTotals();
+        
+        // Sonuçları raporla
+        const savedCount = results.filter(r => r.success).length;
+        const skippedCount = results.filter(r => r.skipped).length;
+        const errorCount = results.filter(r => r.error).length;
+        
+        console.log('� saveAllRecords özeti:', {
+            toplam: results.length,
+            kaydedilen: savedCount,
+            atlanan: skippedCount,
+            hatali: errorCount
+        });
+        
+        if (unsavedHours.length === 0) {
+            Utils.showToast('Kaydedilecek yeni veri bulunamadı', 'info');
+        } else {
+            Utils.showToast(`${savedCount} kayıt kaydedildi, ${skippedCount} atlandı`, 'success');
+        }
+    },
+        
+    /**
+     * Hızlı giriş kaydet
+     */
+    saveQuickEntry: function() {
+        const hour = document.getElementById('quick-hour').value;
+        const aktif = parseFloat(document.getElementById('quick-aktif').value) || 0;
+        const reaktif = parseFloat(document.getElementById('quick-reaktif').value) || 0;
+        
+        if (!hour) {
+            Utils.showToast('Lütfen saat seçin', 'error');
+            return;
+        }
         
         if (aktif === 0 && reaktif === 0) {
             Utils.showToast('Lütfen en az bir değer girin', 'warning');
             return;
         }
         
-        // Önceden kayıt var mı kontrol et
-        const existingRecord = this.currentData.records[hour];
-        if (existingRecord && existingRecord.timestamp) {
-            // ✅ Update öncesi ID kontrolü - eski kayıtlar için uyumluluk
-            if (!existingRecord.id) {
-                existingRecord.id = Date.now().toString();
-                // LocalStorage'a ID'yi güncelle
-                const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
-                let savedData = Utils.loadFromStorage(storageKey, {});
-                savedData[hour] = existingRecord;
-                Utils.saveToStorage(storageKey, savedData);
-            }
-            
-            // Düzeltme modu sor
-            const confirmMessage = `${hour} için zaten kayıt mevcut:\n` +
-                `Aktif: ${existingRecord.aktif || 0}, Reaktif: ${existingRecord.reaktif || 0}\n` +
-                `Aydem Aktif: ${existingRecord.aydemAktif || 0}, Aydem Reaktif: ${existingRecord.aydemReaktif || 0}\n` +
-                `Kaydeden: ${existingRecord.operator}\n` +
-                `Kayıt zamanı: ${new Date(existingRecord.timestamp).toLocaleString('tr-TR')}\n\n` +
-                `Bu kaydı güncellemek istiyor musunuz?`;
-            
-            if (!confirm(confirmMessage)) {
-                Utils.showToast('Kayıt güncelleme iptal edildi', 'info');
-                return;
-            }
-            
-            // Düzeltme modu - logla
-            const changes = [];
-            if (existingRecord.aktif !== aktif) {
-                changes.push(`Aktif: ${existingRecord.aktif || 0} → ${aktif}`);
-            }
-            if (existingRecord.reaktif !== reaktif) {
-                changes.push(`Reaktif: ${existingRecord.reaktif || 0} → ${reaktif}`);
-            }
-            
-            const updatedRecord = {
-                ...existingRecord,
-                aktif: aktif,
-                reaktif: reaktif,
-                updatedAt: new Date().toISOString(),
-                editedBy: Auth.getCurrentUser()?.username || 'unknown',
-                originalTimestamp: existingRecord.timestamp,
-                originalOperator: existingRecord.operator,
-                changes: changes.join(', ') // Değişiklikleri kaydet
-            };
-            
-            // LocalStorage'a güncelle
-            const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
-            let savedData = Utils.loadFromStorage(storageKey, {});
-            savedData[hour] = updatedRecord;
-            Utils.saveToStorage(storageKey, savedData);
-            
-            // Mevcut verileri güncelle
-            this.currentData.records[hour] = updatedRecord;
-            
-            // Durumu güncelle
-            this.updateStatus(hour, updatedRecord);
-            
-            // Toplamları güncelle
-            this.calculateTotals();
-            
-            Utils.showToast(`${hour} saat verisi güncellendi`, 'success');
-            
-            // API'ye gönder
-            this.sendToAPI(updatedRecord, 'update');
+        // Input değerlerini güncelle
+        const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
+        const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+        
+        if (aktifInput) aktifInput.value = aktif;
+        if (reaktifInput) reaktifInput.value = reaktif;
+        
+        // Kaydet
+        this.saveSingleRecord(hour);
+        
+        // Hızlı giriş formunu temizle
+        document.getElementById('quick-hour').value = '';
+        document.getElementById('quick-aktif').value = '';
+        document.getElementById('quick-reaktif').value = '';
+    },
+        
+    /**
+     * Kayıt sil
+     */
+    deleteRecord: function(hour) {
+        if (!confirm(`${hour} saatine ait veriyi silmek istediğinize emin misiniz?`)) {
             return;
         }
         
-        // Yeni kayıt
-        const record = {
-            id: Date.now().toString(), // ✅ ID EKLENDİ
-            aktif: aktif,
-            reaktif: reaktif,
-            timestamp: new Date().toISOString(),
-            date: this.currentData.date,
-            shift: this.currentData.shift,
-            hour: hour,
-            operator: Auth.getCurrentUser()?.username || 'unknown',
-            isNewRecord: true
-        };
-        
-        // LocalStorage'a kaydet
         const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
         let savedData = Utils.loadFromStorage(storageKey, {});
-        savedData[hour] = record;
+        
+        delete savedData[hour];
         Utils.saveToStorage(storageKey, savedData);
         
-        // Mevcut verileri güncelle
-        this.currentData.records[hour] = record;
+        // Mevcut verilerden sil
+        delete this.currentData.records[hour];
+        
+        // Input'ları temizle
+        const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
+        const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
+        
+        if (aktifInput) aktifInput.value = '';
+        if (reaktifInput) reaktifInput.value = '';
         
         // Durumu güncelle
-        this.updateStatus(hour, record);
+        this.updateStatus(hour, {});
         
         // Toplamları güncelle
         this.calculateTotals();
         
-        Utils.showToast(`${hour} saat verisi kaydedildi`, 'success');
-        
-        // API'ye gönder
-        this.sendToAPI(record, 'save');
+        Utils.showToast(`${hour} saat verisi silindi`, 'success');
     },
-    
+        
     /**
-     * Tüm kayıtları kaydet
+     * Input değişikliğini işle
      */
-    saveAllRecords: function() {
-        const unsavedHours = [];
-        const savedRecords = [];
+    onInputChange: function(event) {
+        const input = event.target;
+        const hour = input.dataset.hour;
         
-        this.currentData.hours.forEach(hour => {
-            const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
-            const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
-            
-            const aktif = parseFloat(aktifInput.value) || 0;
-            const reaktif = parseFloat(reaktifInput.value) || 0;
-            
-            if (aktif > 0 || reaktif > 0) {
-                unsavedHours.push(hour);
-                
-                // Direkt kayıt mantığı - saveSingleRecord'ı çağırma
-                const existingRecord = this.currentData.records[hour];
-                
-                if (existingRecord && existingRecord.timestamp) {
-                    // Değişiklik kontrolü yap
-                    const hasChanges = (
-                        existingRecord.aktif !== aktif ||
-                        existingRecord.reaktif !== reaktif
-                    );
-                    
-                    if (!hasChanges) {
-                        // Değişiklik yoksa atla
-                        return;
-                    }
-                    
-                    // Update öncesi ID kontrolü
-                    if (!existingRecord.id) {
-                        existingRecord.id = Date.now().toString();
-                    }
-                    
-                    // Update kaydı oluştur
-                    const updatedRecord = {
-                        ...existingRecord,
-                        aktif: aktif,
-                        reaktif: reaktif,
-                        updatedAt: new Date().toISOString(),
-                        editedBy: Auth.getCurrentUser()?.username || 'unknown',
-                        originalTimestamp: existingRecord.timestamp,
-                        originalOperator: existingRecord.operator,
-                        changes: `Aktif: ${existingRecord.aktif || 0} → ${aktif}, Reaktif: ${existingRecord.reaktif || 0} → ${reaktif}`
-                    };
-                    
-                    // LocalStorage'a güncelle
-                    const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
-                    let savedData = Utils.loadFromStorage(storageKey, {});
-                    savedData[hour] = updatedRecord;
-                    Utils.saveToStorage(storageKey, savedData);
-                    
-                    // Mevcut verileri güncelle
-                    this.currentData.records[hour] = updatedRecord;
-                    savedRecords.push({ record: updatedRecord, action: 'update' });
-                    
-                } else {
-                    // Yeni kayıt
-                    const record = {
-                        id: Date.now().toString(),
-                        aktif: aktif,
-                        reaktif: reaktif,
-                        timestamp: new Date().toISOString(),
-                        date: this.currentData.date,
-                        shift: this.currentData.shift,
-                        hour: hour,
-                        operator: Auth.getCurrentUser()?.username || 'unknown',
-                        isNewRecord: true
-                    };
-                    
-                    // LocalStorage'a kaydet
-                    const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
-                    let savedData = Utils.loadFromStorage(storageKey, {});
-                    savedData[hour] = record;
-                    Utils.saveToStorage(storageKey, savedData);
-                    
-                    // Mevcut verileri güncelle
-                    this.currentData.records[hour] = record;
-                    savedRecords.push({ record: record, action: 'save' });
-                }
-                
-                // Durumu güncelle
-                this.updateStatus(hour, this.currentData.records[hour]);
-            }
-        });
-        
-        // Toplamları güncelle
-        this.calculateTotals();
-        
-        // API'ye toplu gönder
-        savedRecords.forEach(({ record, action }) => {
-            this.sendToAPI(record, action);
-        });
-        
-        if (unsavedHours.length === 0) {
-            Utils.showToast('Kaydedilecek yeni veri bulunamadı', 'info');
-        } else {
-            Utils.showToast(`${unsavedHours.length} kayıt başarıyla kaydedildi`, 'success');
+        // Durumu "kaydedilmedi" olarak güncelle
+        const statusEl = document.getElementById(`status-${hour.replace(':', '')}`);
+        if (statusEl) {
+            statusEl.className = 'status-badge status-unsaved';
+            statusEl.textContent = 'Kaydedilmedi';
         }
     },
     
@@ -835,9 +841,18 @@ const Enerji = {
         const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.saatlik;
         
         if (!url || url === 'BURAYA_YENI_URL_GELECEK') {
-            console.log('Saatlik enerji URL\'si yapılandırılmamış');
+            console.log('❌ Saatlik enerji URL\'si yapılandırılmamış');
             return;
         }
+        
+        console.log('📤 API\'ye gönderiliyor:', {
+            action: action,
+            id: record.id,
+            hour: record.hour,
+            aktif: record.aktif,
+            reaktif: record.reaktif,
+            url: url
+        });
         
         const formData = new FormData();
         formData.append('action', action);
@@ -857,16 +872,16 @@ const Enerji = {
         .then(data => {
             if (data.success) {
                 const actionText = action === 'update' ? 'güncellendi' : 'kaydedildi';
-                console.log(`Saatlik enerji verisi API'ye ${actionText}:`, data);
+                console.log(`✅ Saatlik enerji verisi API'ye ${actionText}:`, data);
                 Utils.showToast(`Veri Google Sheets'e ${actionText}`, 'success');
             } else {
-                console.error('API hatası:', data.error);
+                console.error('❌ API hatası:', data.error);
                 Utils.showToast('Google Sheets hatası: ' + data.error, 'error');
             }
         })
         .catch(error => {
-            console.error('API gönderim hatası:', error);
-            Utils.showToast('İnternet bağlantısı hatası', 'error');
+            console.error('💥 API gönderim hatası:', error);
+            Utils.showToast('İnternet bağlantısı hatası: ' + error.message, 'error');
         });
     }
 };
