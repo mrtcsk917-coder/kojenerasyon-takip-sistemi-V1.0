@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/bakim-takip.css">
     <link rel="stylesheet" href="css/buhar.css">
     <link rel="stylesheet" href="css/dashboard-date-selector.css">
+    <link rel="stylesheet" href="css/records.css">
 </head>
 <body>
     <!-- Login Container -->
@@ -86,7 +87,7 @@
                     <span>Saatlik Aktif ve Reaktif</span>
                 </a>
                 <a href="#" class="nav-item" data-page="gunluk-enerji">
-                    <span class="nav-icon">📈</span>
+                    <span class="nav-icon">📊</span>
                     <span>Günlük Enerji Verileri</span>
                 </a>
                 <a href="#" class="nav-item" data-page="vardiya">
@@ -448,9 +449,9 @@
                                             <span class="input-icon">🛢️</span>
                                             Yağ Seviyesi
                                         </label>
-                                        <span class="input-unit">%</span>
+                                        <span class="input-unit">L</span>
                                     </div>
-                                    <input type="number" id="yag-seviyesi" class="energy-input" min="0" max="100" step="0.1" placeholder="0.0">
+                                    <input type="number" id="yag-seviyesi" class="energy-input" min="0" step="0.1" placeholder="0.0">
                                 </div>
                                 
                                 <!-- Kuplaj -->
@@ -570,7 +571,7 @@
                                     <span>🔄</span>
                                     Temizle
                                 </button>
-                                <button type="submit" class="btn-save" id="save-daily-btn">
+                                <button type="button" class="btn-save" id="save-daily-btn">
                                     <span>💾</span>
                                     Kaydet
                                 </button>
@@ -578,8 +579,77 @@
                         </form>
                     </div>
                 </div>
+
+                <!-- Google Sheets Kayıtları Tablosu -->
+                <div class="records-section" style="margin-top: 30px;">
+                    <div class="section-header">
+                        <h2>📋 Google Sheets Kayıtları</h2>
+                        <p>Tüm günlük enerji kayıtlarınızı görüntüleyin</p>
+                    </div>
+
+                    <!-- Kayıt Yükleme Butonu -->
+                    <div class="records-controls">
+                        <button id="load-records-btn" class="btn-primary">
+                            <span>🔄</span>
+                            Kayıtları Yükle
+                        </button>
+                        
+                        <!-- Satır Sayısı Seçimi -->
+                        <div class="row-selector">
+                            <label for="row-count">Satır Sayısı:</label>
+                            <select id="row-count">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        
+                        <div class="records-info">
+                            <span id="total-records">Toplam: 0 kayıt</span>
+                        </div>
+                    </div>
+
+                    <!-- Tablo -->
+                    <div class="table-container">
+                        <table id="records-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Yağ Seviyesi (L)</th>
+                                    <th>Kuplaj</th>
+                                    <th>GM-1</th>
+                                    <th>GM-2</th>
+                                    <th>GM-3</th>
+                                    <th>İç İhtiyaç</th>
+                                    <th>Redresör 1</th>
+                                    <th>Redresör 2</th>
+                                    <th>Kojen İç İhtiyaç</th>
+                                    <th>Servis Trafo</th>
+                                    <th>Kaydeden</th>
+                                    <th>Kayıt Tarihi</th>
+                                    <th>Düzenleyen</th>
+                                    <th>Düzenleme Tarihi</th>
+                                    <th>Düzenlenen Değerler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="records-tbody">
+                                <tr>
+                                    <td colspan="17" class="no-data">Kayıt yüklemek için "Kayıtları Yükle" butonuna tıklayın</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Sayfalama -->
+                    <div class="pagination-container">
+                        <div class="pagination" id="pagination">
+                            <!-- Sayfalama butonları JS ile oluşturulacak -->
+                        </div>
+                    </div>
+                </div>
             </section>
 
+            
             <!-- Vardiya Takibi Page -->
             <section id="vardiya-page" class="page">
                 <div class="page-header">
@@ -1219,6 +1289,7 @@
     <script src="js/auth.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="js/daily-energy-api.js"></script>
     <script src="js/enerji.js"></script>
     <script src="js/vardiya.js"></script>
     <script src="js/kojen-motor.js"></script>
@@ -1230,6 +1301,17 @@
     <script src="js/google-sheets-api.js"></script>
     <script src="js/buhar.js"></script>
     <script src="js/raporlar.js"></script>
+    <script src="js/records.js"></script>
     <script src="js/main.js"></script>
+    
+    <script>
+    (() => {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const saved = localStorage.getItem('theme');
+
+        document.documentElement.dataset.theme =
+            saved || (prefersDark ? 'dark' : 'light');
+    })();
+    </script>
 </body>
 </html>

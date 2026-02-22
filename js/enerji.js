@@ -3,6 +3,20 @@
  * Saatlik ve günlük enerji verisi yönetimi
  */
 
+/**
+ * Türkiye saatine göre YYYY-MM-DD formatında tarih döndürür
+ */
+function getLocalDateYYYYMMDD() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/**
+ * Enerji modülü
+ */
 const Enerji = {
     // Mevcut seçili veriler
     currentData: {
@@ -37,41 +51,55 @@ const Enerji = {
      * Sistemi başlat
      */
     init: function() {
+        console.log('🔌 Enerji modülü başlatılıyor...');
         this.setupEventListeners();
         this.setDefaultValues();
+        
+        // DailyRecords modülünü geciktirerek başlat (aynı sayfada olduğu için)
+        setTimeout(() => {
+            if (window.DailyRecords) {
+                DailyRecords.init();
+                console.log('📋 DailyRecords modülü başlatıldı');
+            } else {
+                console.warn('⚠️ DailyRecords modülü bulunamadı');
+            }
+        }, 100);
     },
     
     /**
      * Varsayılan değerleri ayarla
      */
     setDefaultValues: function() {
-        // Bugünün tarihini HTML date input formatında ayarla
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const todayString = `${year}-${month}-${day}`;
-        document.getElementById('hourly-date').value = todayString;
+        // Bugünün tarihini Türkiye saatine göre ayarla
+        const todayStr = getLocalDateYYYYMMDD(); // UTC sorunu olmasın diye
         
-        // Mevcut saate göre vardiyayı otomatik seç
-        this.setCurrentShift();
-    },
-    
-    /**
-     * Mevcut saate göre vardiyayı ayarla
-     */
-    setCurrentShift: function() {
-        const now = new Date();
-        const hour = now.getHours();
-        
-        let shift = 'gece';
-        if (hour >= 8 && hour < 16) {
-            shift = 'gunduz';
-        } else if (hour >= 16) {
-            shift = 'aksam';
+        // Saatlik form için tarih
+        const hourlyDateInput = document.getElementById('hourly-date');
+        if (hourlyDateInput) {
+            hourlyDateInput.value = todayStr;
         }
         
-        document.getElementById('hourly-shift').value = shift;
+        // Günlük enerji formu için tarih
+        const dailyDateInput = document.getElementById('daily-date');
+        if (dailyDateInput) {
+            dailyDateInput.value = todayStr;
+        }
+        
+        // Varsayılan vardiya ayarla
+        const today = new Date(); // today değişkenini tanımla
+        const currentHour = today.getHours();
+        let defaultShift = 'gece';
+        
+        if (currentHour >= 8 && currentHour < 16) {
+            defaultShift = 'gunduz';
+        } else if (currentHour >= 16 && currentHour < 24) {
+            defaultShift = 'aksam';
+        }
+        
+        const shiftSelect = document.getElementById('hourly-shift');
+        if (shiftSelect) {
+            shiftSelect.value = defaultShift;
+        }
     },
     
     /**
@@ -79,35 +107,43 @@ const Enerji = {
      */
     setupEventListeners: function() {
         // Vardiya yükleme butonu
-        document.getElementById('load-shift-btn').addEventListener('click', () => {
+        document.getElementById('load-shift-btn')?.addEventListener('click', () => {
             this.loadShiftData();
         });
         
         // Tümünü kaydet butonu
-        document.getElementById('save-all-btn').addEventListener('click', () => {
+        document.getElementById('save-all-btn')?.addEventListener('click', () => {
             this.saveAllRecords();
         });
         
         // Temizle butonu
-        document.getElementById('clear-btn').addEventListener('click', () => {
+        document.getElementById('clear-btn')?.addEventListener('click', () => {
             this.clearCurrentShift();
         });
         
         // Hızlı kaydet butonu
-        document.getElementById('quick-save-btn').addEventListener('click', () => {
+        document.getElementById('quick-save-btn')?.addEventListener('click', () => {
             this.saveQuickEntry();
         });
         
-        // Sayfa değişikliklerini izle
-        this.setupPageObserver();
-    },
-    
-    /**
-     * Sayfa değişikliklerini izle
-     */
-    setupPageObserver: function() {
-        // Bu fonksiyon main.js tarafından yönetiliyor
-        // Çakışmayı önlemek için burası boş bırakıldı
+        // Günlük enerji formu - Kaydet butonu
+        document.getElementById('save-daily-btn')?.addEventListener('click', () => {
+            this.saveDailyEnergy();
+        });
+        
+        // Günlük enerji - Tarih değişince kayıtlı veriyi yükle
+        document.getElementById('daily-date')?.addEventListener('input', (e) => {
+            console.log('Tarih değişti:', e.target.value);
+            this.loadDailyEnergyByDate();
+        });
+        
+        // Günlük enerji formu - Temizle butonu
+        document.getElementById('reset-daily-form')?.addEventListener('click', () => {
+            this.resetDailyEnergyForm();
+        });
+        
+        // Sayfa değişiklikleri main.js tarafından yönetiliyor
+        // this.setupPageObserver(); // Gereksiz çağrı kaldırıldı
     },
     
     /**
@@ -226,12 +262,20 @@ const Enerji = {
     },
     
     /**
-     * Türkçe tarih formatı
+     * Türkçe tarih formatı (güvenli versiyon)
      */
     formatTurkishDate: function(dateString) {
         if (!dateString) return '';
         
-        const date = new Date(dateString);
+        // Güvenli Date objesi oluştur (UTC sorunu olmasın diye)
+        let date;
+        if (dateString.includes('-')) {
+            const [y, m, d] = dateString.split('-');
+            date = new Date(y, m-1, d); // Local timezone
+        } else {
+            date = new Date(dateString);
+        }
+        
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const year = date.getFullYear();
@@ -635,88 +679,6 @@ const Enerji = {
     },
     
     /**
-     * Hızlı giriş kaydet
-     */
-    saveQuickEntry: function() {
-        const hour = document.getElementById('quick-hour').value;
-        const aktif = parseFloat(document.getElementById('quick-aktif').value) || 0;
-        const reaktif = parseFloat(document.getElementById('quick-reaktif').value) || 0;
-        
-        if (!hour) {
-            Utils.showToast('Lütfen saat seçin', 'error');
-            return;
-        }
-        
-        if (aktif === 0 && reaktif === 0) {
-            Utils.showToast('Lütfen en az bir değer girin', 'warning');
-            return;
-        }
-        
-        // Input değerlerini güncelle
-        const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
-        const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
-        
-        if (aktifInput) aktifInput.value = aktif;
-        if (reaktifInput) reaktifInput.value = reaktif;
-        
-        // Kaydet
-        this.saveSingleRecord(hour);
-        
-        // Hızlı giriş formunu temizle
-        document.getElementById('quick-hour').value = '';
-        document.getElementById('quick-aktif').value = '';
-        document.getElementById('quick-reaktif').value = '';
-    },
-    
-    /**
-     * Kayıt sil
-     */
-    deleteRecord: function(hour) {
-        if (!confirm(`${hour} saatine ait veriyi silmek istediğinize emin misiniz?`)) {
-            return;
-        }
-        
-        const storageKey = `hourly_${this.currentData.date}_${this.currentData.shift}`;
-        let savedData = Utils.loadFromStorage(storageKey, {});
-        
-        delete savedData[hour];
-        Utils.saveToStorage(storageKey, savedData);
-        
-        // Mevcut verilerden sil
-        delete this.currentData.records[hour];
-        
-        // Input'ları temizle
-        const aktifInput = document.querySelector(`[data-hour="${hour}"][data-field="aktif"]`);
-        const reaktifInput = document.querySelector(`[data-hour="${hour}"][data-field="reaktif"]`);
-        
-        if (aktifInput) aktifInput.value = '';
-        if (reaktifInput) reaktifInput.value = '';
-        
-        // Durumu güncelle
-        this.updateStatus(hour, {});
-        
-        // Toplamları güncelle
-        this.calculateTotals();
-        
-        Utils.showToast(`${hour} saat verisi silindi`, 'success');
-    },
-    
-    /**
-     * Input değişikliğini işle
-     */
-    onInputChange: function(event) {
-        const input = event.target;
-        const hour = input.dataset.hour;
-        
-        // Durumu "kaydedilmedi" olarak güncelle
-        const statusEl = document.getElementById(`status-${hour.replace(':', '')}`);
-        if (statusEl) {
-            statusEl.className = 'status-badge status-unsaved';
-            statusEl.textContent = 'Kaydedilmedi';
-        }
-    },
-    
-    /**
      * Durum class'ını belirle
      */
     getStatusClass: function(record) {
@@ -893,6 +855,170 @@ const Enerji = {
             Utils.showToast('İnternet bağlantısı hatası: ' + error.message, 'error');
             return { error: true, message: error.message };
         });
+    },
+    
+/**
+     * Seçili tarihteki kayıtlı veriyi forma yükle
+     */
+    loadDailyEnergyByDate: function() {
+        const dateInput = document.getElementById('daily-date');
+        if (!dateInput || !dateInput.value) {
+            console.log('❌ Tarih input bulunamadı veya boş');
+            return;
+        }
+        
+        const date = dateInput.value;
+        console.log('📅 Seçilen tarih:', date);
+        
+        // LocalStorage devre dışı, Google Sheets'ten veri çek
+        console.warn('LocalStorage devre dışı, Google Sheets kontrolü backend\'te');
+        
+        // Google Sheets'ten tarihe göre veri çek
+        if (window.DailyEnergyAPI) {
+            DailyEnergyAPI.getDailyEnergy(date)
+                .then(record => {
+                    if (record && record.success) {
+                        console.log('✅ Google Sheets\'ten kayıt bulundu!');
+                        console.log('   Yağ Seviyesi:', record.yagSeviyesi);
+                        console.log('   Kuplaj:', record.kuplaj);
+                        console.log('   GM-1:', record.gm1);
+                        
+                        // Input değerlerini güncelle
+                        const yagInput = document.getElementById('yag-seviyesi');
+                        const kuplajInput = document.getElementById('kuplaj');
+                        const gm1Input = document.getElementById('gm-1');
+                        const gm2Input = document.getElementById('gm-2');
+                        const gm3Input = document.getElementById('gm-3');
+                        const icIhtiyacInput = document.getElementById('ic-ihtiyac');
+                        const redresor1Input = document.getElementById('redresor-1');
+                        const redresor2Input = document.getElementById('redresor-2');
+                        const kojenIcInput = document.getElementById('kojen-ic-ihtiyac');
+                        const servisTrafoInput = document.getElementById('servis-trafosi');
+                        
+                        if (yagInput) yagInput.value = record.yagSeviyesi || '';
+                        if (kuplajInput) kuplajInput.value = record.kuplaj || '';
+                        if (gm1Input) gm1Input.value = record.gm1 || '';
+                        if (gm2Input) gm2Input.value = record.gm2 || '';
+                        if (gm3Input) gm3Input.value = record.gm3 || '';
+                        if (icIhtiyacInput) icIhtiyacInput.value = record.icIhtiyac || '';
+                        if (redresor1Input) redresor1Input.value = record.redresor1 || '';
+                        if (redresor2Input) redresor2Input.value = record.redresor2 || '';
+                        if (kojenIcInput) kojenIcInput.value = record.kojenIcIhtiyac || '';
+                        if (servisTrafoInput) servisTrafoInput.value = record.servisTrafo || '';
+                        
+                        Utils.showToast('Kayıt Google Sheets\'ten yüklendi', 'success');
+                    } else {
+                        console.warn('⚠️ Google Sheets\'te kayıt bulunamadı');
+                        Utils.showToast('Bu tarihte kayıt bulunamadı', 'warning');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Google Sheets hatası:', error);
+                    Utils.showToast('Kayıt yüklenemedi: ' + error.message, 'error');
+                });
+        } else {
+            console.warn('⚠️ DailyEnergyAPI modülü bulunamadı');
+            Utils.showToast('API modülü bulunamadı', 'error');
+        }
+    },
+
+    /**
+     * Günlük enerji verilerini kaydet
+     */
+    saveDailyEnergy: function() {
+        const saveBtn = document.getElementById('save-daily-btn');
+        if (saveBtn.disabled) return;
+        
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span>⏳</span><span>Kaydediliyor...</span>';
+        
+        const date = document.getElementById('daily-date').value;
+        
+        if (!date) {
+            Utils.showToast('Lütfen tarih seçin', 'error');
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<span>💾</span><span>Kaydet</span>';
+            return;
+        }
+        
+        // Tarih kontrolü sadece Google Sheets tarafında yapılacak
+        // LocalStorage kontrolü kaldırıldı
+        
+        const formData = {
+            action: 'upsert', // Backend'e hangi işlem yapılacağını bildir
+            date: date,
+            yagSeviyesi: document.getElementById('yag-seviyesi').value || 0,
+            kuplaj: document.getElementById('kuplaj').value || 0,
+            gm1: document.getElementById('gm-1').value || 0,
+            gm2: document.getElementById('gm-2').value || 0,
+            gm3: document.getElementById('gm-3').value || 0,
+            icIhtiyac: document.getElementById('ic-ihtiyac').value || 0,
+            redresor1: document.getElementById('redresor-1').value || 0,
+            redresor2: document.getElementById('redresor-2').value || 0,
+            kojenIcIhtiyac: document.getElementById('kojen-ic-ihtiyac').value || 0,
+            servisTrafo: document.getElementById('servis-trafosi').value || 0,
+            timestamp: new Date().toISOString(), // TEK timestamp
+            kaydeden: Utils.getCurrentUser() || 'Bilinmeyen'
+        };
+        
+        // LocalStorage kaydetme kaldırıldı - sadece Google Sheets kullanılacak
+        // Utils.saveToStorage(storageKey, formData);
+        
+        // Google Sheets tarafında kontrol edilip güncellenecek veya yeni kayıt yapılacak
+        this.sendDailyEnergyToAPI(formData)
+            .then((response) => {
+                // Google Apps Script'ten gelen mesajı kullan
+                const message = response?.message || 'Günlük enerji verileri başarıyla kaydedildi';
+                Utils.showToast(message, 'success');
+            })
+            .catch(() => {
+                Utils.showToast('İşlem başarısız', 'error');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<span>💾</span><span>Kaydet</span>';
+                }, 2000);
+            });
+        
+        // Formu temizleme - kullanıcı tekrar kaydetmek isteyebilir
+        // setTimeout(() => this.resetDailyEnergyForm(), 1500);
+    },
+
+    /**
+     * Günlük enerji formunu temizle
+     */
+    resetDailyEnergyForm: function() {
+        const form = document.getElementById('daily-energy-form');
+        if (form) {
+            form.reset();
+            // Tarih alanını bugüne Türkiye saatine göre ayarla
+            const today = getLocalDateYYYYMMDD();
+            document.getElementById('daily-date').value = today;
+        }
+    },
+    
+    /**
+     * Günlük enerji verilerini Google Sheets API'e gönder
+     */
+    sendDailyEnergyToAPI: function(data) {
+        // DailyEnergyAPI modülünü kullan
+        if (window.DailyEnergyAPI) {
+            return DailyEnergyAPI.saveDailyEnergy(data)
+                .then(result => {
+                    Utils.showToast('Veri Google Sheets\'e kaydedildi', 'success');
+                    return result;
+                })
+                .catch(error => {
+                    console.error('❌ Google Sheets hatası:', error);
+                    Utils.showToast('Google Sheets hatası: ' + error.message, 'error');
+                    return { error: true, message: error.message };
+                });
+        }
+        
+        // Fallback - eski metod
+        console.log('⚠️ DailyEnergyAPI modülü bulunamadı, veri sadece local\'e kaydedildi');
+        return Promise.resolve({ skipped: true, reason: 'no_api_module' });
     }
 };
 

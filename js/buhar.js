@@ -244,6 +244,21 @@ const BuharVerileri = {
         }
         
         try {
+            // ✅ Tarih kontrolü - aynı tarihte kayıt var mı?
+            const steamDate = document.getElementById('steam-date').value;
+            if (!steamDate) {
+                Utils.showToast('Lütfen tarih seçin', 'error');
+                return;
+            }
+            
+            // Aynı tarihte kayıt var mı kontrol et
+            const storageKey = `buhar-${steamDate}`;
+            const existingRecord = Utils.loadFromStorage(storageKey);
+            if (existingRecord) {
+                Utils.showToast(`Bu tarihte (${steamDate}) zaten bir buhar kaydı var!`, 'warning');
+                return;
+            }
+            
             // ✅ Tek kilit: hem UI hem logic
             this.setLoadingState(true);
             const formData = new FormData(document.getElementById('steam-form'));

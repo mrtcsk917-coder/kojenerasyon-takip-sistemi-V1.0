@@ -1,0 +1,155 @@
+/* ===============================
+   ANIMATIONS & PERFORMANCE
+   =============================== */
+
+/* Dashboard Gradient Variables */
+:root {
+    --dashboard-bg-gradient: linear-gradient(
+        135deg,
+        #f8fafc,
+        #e2e8f0,
+        #f1f5f9
+    );
+
+    --card-gradient: linear-gradient(
+        135deg,
+        #ffffff,
+        #f8fafc
+    );
+
+    --header-gradient: linear-gradient(
+        135deg,
+        #38bdf8,
+        #0ea5e9
+    );
+
+    --accent-glow: 0 10px 30px rgba(14,165,233,.25);
+}
+
+html[data-theme="dark"] {
+    --dashboard-bg-gradient: radial-gradient(
+        circle at top left,
+        #020617,
+        #020617 70%
+    );
+
+    --card-gradient: linear-gradient(
+        145deg,
+        #020617,
+        #020617
+    );
+
+    --header-gradient: linear-gradient(
+        135deg,
+        #2563eb,
+        #1e40af
+    );
+
+    --accent-glow: 0 15px 40px rgba(37,99,235,.35);
+}
+
+/* Base Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes gradient-shift {
+    0%, 100% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+}
+
+/* Toast Animations */
+.toast {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+/* Hover Animations */
+.hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading Animations */
+.loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Performance Optimization */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+    
+    /* Disable heavy effects */
+    .backdrop-filter {
+        backdrop-filter: none !important;
+    }
+    
+    /* Simplify gradients */
+    .toast {
+        background: var(--bg-card) !important;
+    }
+    
+    #dashboard-page {
+        background: var(--bg-primary) !important;
+    }
+    
+    #dashboard-page .stat-card,
+    #dashboard-page .motor-status-card {
+        background: var(--card-bg) !important;
+        box-shadow: var(--shadow) !important;
+    }
+    
+    #dashboard-page .page-header {
+        background: var(--card-bg) !important;
+    }
+}

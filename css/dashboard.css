@@ -1,0 +1,198 @@
+/* ===============================
+   DASHBOARD STYLES
+   =============================== */
+
+/* Dashboard Page Specific Variables */
+#dashboard-page {
+    --dashboard-title-color: #1e293b;
+}
+
+html[data-theme="dark"] #dashboard-page {
+    --dashboard-title-color: #ffffff;
+}
+
+/* Dashboard Background */
+#dashboard-page {
+    background: var(--dashboard-bg-gradient);
+    min-height: 100vh;
+    transition: background 0.6s ease;
+}
+
+/* Light Effect */
+#dashboard-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(56,189,248,.12), transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(99,102,241,.12), transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+html[data-theme="dark"] #dashboard-page::before {
+    background:
+        radial-gradient(circle at 20% 20%, rgba(37,99,235,.15), transparent 55%),
+        radial-gradient(circle at 80% 80%, rgba(14,165,233,.08), transparent 55%);
+}
+
+/* Dashboard Header */
+#dashboard-page .page-header {
+    background: var(--header-gradient);
+    color: white;
+    border-radius: 24px;
+    box-shadow: var(--accent-glow);
+}
+
+#dashboard-page .page-header h1,
+#dashboard-page .page-header h2,
+#dashboard-page .page-header p {
+    color: white !important;
+}
+
+/* Dashboard Cards */
+#dashboard-page .stat-card,
+#dashboard-page .motor-status-card {
+    background: var(--card-gradient);
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--accent-glow);
+    transition: all .4s ease;
+}
+
+#dashboard-page .stat-card:hover,
+#dashboard-page .motor-status-card:hover {
+    transform: translateY(-10px) scale(1.03);
+}
+
+/* Dashboard Title Color */
+#dashboard-page h2 {
+    color: var(--dashboard-title-color) !important;
+}
+
+/* Stat Cards */
+.stat-card {
+    background: linear-gradient(135deg, #87CEEB 0%, #ADD8E6 100%);
+    color: #333;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.stat-info h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.stat-info p {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Motor Cards Section */
+.motor-cards-section {
+    margin-top: 30px;
+}
+
+.motor-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+/* Motor Status Cards */
+.motor-status-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border-color);
+    position: relative;
+}
+
+.motor-status-header {
+    padding: 24px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    position: relative;
+    overflow: hidden;
+}
+
+.motor-status-header h3 {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--primary-color);
+    text-align: center;
+}
+
+.motor-status-body {
+    padding: 24px;
+}
+
+.motor-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.motor-info-row:last-child {
+    border-bottom: none;
+}
+
+.motor-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.motor-value {
+    font-size: 15px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Dark Mode Motor Cards */
+html[data-theme="dark"] #motor-gm1,
+html[data-theme="dark"] #motor-gm2,
+html[data-theme="dark"] #motor-gm3 {
+    --text-primary: #ffffff;
+    --text-secondary: #e5e7eb;
+}
+
+html[data-theme="dark"] #motor-gm1 .motor-status-body,
+html[data-theme="dark"] #motor-gm2 .motor-status-body,
+html[data-theme="dark"] #motor-gm3 .motor-status-body {
+    background: radial-gradient(
+        circle at top left,
+        #020617,
+        #020617 70%
+    );
+}

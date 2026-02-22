@@ -308,9 +308,24 @@ const Vardiya = {
      * Vardiya kaydet
      */
     saveVardiya: async function() {
+        // ✅ Tarih kontrolü - aynı tarihte kayıt var mı?
+        const vardiyaTarih = document.getElementById('vardiya-tarih').value;
+        if (!vardiyaTarih) {
+            Utils.showToast('Lütfen tarih seçin', 'error');
+            return;
+        }
+        
+        // Aynı tarihte kayıt var mı kontrol et
+        const storageKey = `vardiya-${vardiyaTarih}`;
+        const existingRecord = Utils.loadFromStorage(storageKey);
+        if (existingRecord) {
+            Utils.showToast(`Bu tarihte (${vardiyaTarih}) zaten bir vardiya kaydı var!`, 'warning');
+            return;
+        }
+        
         const formData = {
             id: Date.now().toString(),
-            tarih: document.getElementById('vardiya-tarih').value,
+            tarih: vardiyaTarih,
             vardiya_tipi: document.getElementById('vardiya-tipi').value,
             sorumlu_personel: document.getElementById('sorumlu-personel').value,
             isler: this.getSelectedIsler(),
@@ -322,6 +337,9 @@ const Vardiya = {
         const vardiyaData = Utils.loadFromStorage('vardiya_data', []);
         vardiyaData.push(formData);
         Utils.saveToStorage('vardiya_data', vardiyaData);
+        
+        // Ayrıca tarih bazlı kaydet (kontrol için)
+        Utils.saveToStorage(storageKey, formData);
 
         // Google Sheets'e gönder
         try {

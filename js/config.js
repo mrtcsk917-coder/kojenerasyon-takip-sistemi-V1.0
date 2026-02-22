@@ -114,13 +114,19 @@ const CONFIG = {
         buhar: 'https://script.google.com/macros/s/AKfycbxi8N33CjAJRWmUfQDS4D9sy-97N0Op6Bz85i9jsIhYruNqfidC7dXoxmYFBNxun_QI/exec',
         // Saatlik Enerji Verileri
         saatlik: 'https://script.google.com/macros/s/AKfycbxkSKwnicC7H0LV0ThP-IsjTQuHZobDlusyo_vqM5ZB7DSRrtcjyuqS23gakjMm2GHx/exec',
+        // Günlük Enerji Verileri
+        gunluk_enerji: 'https://script.google.com/macros/s/AKfycbzDiR-gKJPCNxs-odRtt6yp1Qz324rn6jw26K8BogagHNKd8dB-1Yik61j-WRc4Z2xg/exec',
         // Diğer modüller geçici olarak devre dışı
         // kojen_motor: 'URL',
         // kojen_enerji: 'URL',
-        // gunluk_enerji: 'URL',
         // vardiya: 'URL',
         // bakim: 'URL',
         // ariza: 'URL'
+    },
+    
+    // Google Apps Script URL'leri (yeni format)
+    googleAppsScript: {
+        dailyEnergyUrl: 'https://script.google.com/macros/s/AKfycbzDiR-gKJPCNxs-odRtt6yp1Qz324rn6jw26K8BogagHNKd8dB-1Yik61j-WRc4Z2xg/exec'
     },
     
     // Geriye dönük uyumluluk için eski URL

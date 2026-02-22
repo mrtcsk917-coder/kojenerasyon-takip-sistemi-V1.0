@@ -32,13 +32,15 @@ const Utils = {
         
         // Toast'u göster
         toast.classList.remove('hidden');
+        toast.classList.add('show');
         toast.textContent = message;
-        toast.className = `toast ${type}`;
+        toast.className = `toast show ${type}`;
         
         console.log('Toast gösterildi:', toast.className);
         
         // Süre sonra gizle ve bir sonrakini göster
         setTimeout(() => {
+            toast.classList.remove('show');
             toast.classList.add('hidden');
             console.log('Toast gizlendi');
             this.isToastShowing = false;
@@ -99,7 +101,11 @@ const Utils = {
      * Mevcut kullaniciyi al
      */
     getCurrentUser: function() {
-        return this.loadFromStorage(CONFIG.STORAGE_KEYS.CURRENT_USER);
+        const user = this.loadFromStorage(CONFIG.STORAGE_KEYS.CURRENT_USER);
+        if (user && typeof user === 'object') {
+            return user.name || user.username || 'Bilinmeyen Kullanıcı';
+        }
+        return user || 'Bilinmeyen Kullanıcı';
     },
 
     /**
@@ -135,16 +141,58 @@ const Utils = {
     },
 
     /**
-     * Loading göstergesi göster (Toast için)
+     * Toast mesajı gösterir
      */
-    showToast: function(message, type = 'success', duration = 3000) {
-        // Toast'u queue'ya ekle
-        this.toastQueue.push({ message, type, duration });
-        console.log('Toast queue\'ya eklendi:', { message, type, duration });
-        console.log('Queue uzunluğu:', this.toastQueue.length);
+    showToast: function(message, type = 'info', duration = 3000) {
+        // Toast elementini kontrol et
+        let toast = document.getElementById('toast');
+        if (!toast) {
+            console.warn('Toast elementi bulunamadı, yeni oluşturuluyor...');
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.className = 'toast hidden';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+        }
         
-        // Queue'yu işle
+        // Kuyruğa ekle
+        this.toastQueue.push({ message, type, duration });
         this.processToastQueue();
+    },
+
+    /**
+     * Tarih kontrolü - aynı tarihte kayıt var mı?
+     * @param {string} storageKeyPrefix - LocalStorage key öneki (örn: 'daily-energy', 'buhar', 'ariza')
+     * @param {string} date - Kontrol edilecek tarih (YYYY-MM-DD formatında)
+     * @returns {boolean} - true: kayıt var, false: kayıt yok
+     */
+    checkExistingRecordByDate: function(storageKeyPrefix, date) {
+        const storageKey = `${storageKeyPrefix}-${date}`;
+        const existingRecord = this.loadFromStorage(storageKey);
+        return !!existingRecord;
+    },
+
+    /**
+     * Form kaydetmeden önce tarih kontrolü yap
+     * @param {string} dateInputId - Tarih input elementinin ID'si
+     * @param {string} storageKeyPrefix - LocalStorage key öneki
+     * @param {string} formName - Form adı (bildirim mesajları için)
+     * @returns {boolean} - true: kontrol başarılı (kayıt yok), false: kontrol başarısız (kayıt var)
+     */
+    validateDateBeforeSave: function(dateInputId, storageKeyPrefix, formName) {
+        const dateInput = document.getElementById(dateInputId);
+        if (!dateInput || !dateInput.value) {
+            this.showToast('Lütfen tarih seçin', 'error');
+            return false;
+        }
+        
+        const date = dateInput.value;
+        if (this.checkExistingRecordByDate(storageKeyPrefix, date)) {
+            this.showToast(`${formName} için bu tarihte (${date}) zaten bir kayıt var!`, 'warning');
+            return false;
+        }
+        
+        return true;
     },
 
     /**
