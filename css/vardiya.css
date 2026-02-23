@@ -1,4 +1,17 @@
 /* ===== VARDİYA SAYFASI STİLLERİ ===== */
+
+/* Page Header - Açık Mavi Arka Plan */
+#vardiya-page .page-header {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 #vardiya-page .content-grid {
     grid-template-columns: 1fr;
     gap: 24px;

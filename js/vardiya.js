@@ -11,6 +11,12 @@ const Vardiya = {
         this.setupAutoFill();
         this.loadVardiyalar();
         this.updateCurrentVardiya();
+        // Operator listesini Google Sheets'ten yükle
+        this.loadOperators();
+        // VardiyaAPI'yi başlat
+        if (typeof VardiyaAPI !== 'undefined') {
+            VardiyaAPI.init();
+        }
     },
 
     /**
@@ -84,6 +90,37 @@ const Vardiya = {
         if (notlarTextarea) {
             notlarTextarea.addEventListener('input', () => {
                 this.updateCharCount();
+            });
+        }
+
+        // Tarih değiştiğinde kontrol et
+        const tarihInput = document.getElementById('vardiya-tarih');
+        const vardiyaTipiSelect = document.getElementById('vardiya-tipi');
+        
+        function resetFormAndButton() {
+            // Formu sıfırla ve butonu aktif et
+            this.resetForm();
+            const saveBtn = document.querySelector('#vardiya-form button[type="submit"]');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
+            }
+            // Kayıt zamanını temizle
+            const kayitZamaniDiv = document.getElementById('kayit-zamani');
+            if (kayitZamaniDiv) {
+                kayitZamaniDiv.innerHTML = '';
+            }
+        }
+        
+        if (tarihInput) {
+            tarihInput.addEventListener('change', () => {
+                resetFormAndButton.call(this);
+            });
+        }
+        
+        if (vardiyaTipiSelect) {
+            vardiyaTipiSelect.addEventListener('change', () => {
+                resetFormAndButton.call(this);
             });
         }
 
@@ -209,16 +246,17 @@ const Vardiya = {
     },
 
     /**
-     * Personel önerilerini göster
+     * Personel önerilerini göster (Google Sheets'ten çekilen operatorler)
      */
     showPersonelSuggestions: function(query) {
         const suggestions = document.getElementById('personel-suggestions');
-        const allPersonel = ['Ahmet Yılmaz', 'Mehmet Demir', 'Ayşe Kaya', 'Fatma Şahin', 'Mustafa Öz', 'Zeynep Çelik'];
         
-        if (!query || query.length < 2) {
-            suggestions.classList.remove('show');
-            return;
-        }
+        // Google Sheets'ten yüklenen operator listesini kullan
+        const allPersonel = this.operatorList && this.operatorList.length > 0 
+            ? this.operatorList 
+            : []; // Boş liste - kullanıcı manuel girebilir
+        
+        if (!suggestions) return;
 
         const filtered = allPersonel.filter(personel => 
             personel.toLowerCase().includes(query.toLowerCase())
@@ -305,29 +343,95 @@ const Vardiya = {
     },
 
     /**
+     * Mevcut vardiya kaydını göster
+     */
+    showExistingVardiya: function(vardiya) {
+        // Form alanlarını doldur
+        document.getElementById('vardiya-tipi').value = vardiya.vardiya_tipi || '';
+        document.getElementById('sorumlu-personel').value = vardiya.sorumlu_personel || '';
+        
+        // Yardımcı personel varsa
+        if (vardiya.yardimci_personel) {
+            const yardimciCheckbox = document.getElementById('yardimci-var');
+            if (yardimciCheckbox) {
+                yardimciCheckbox.checked = true;
+                document.getElementById('yardimci-personel-group').style.display = 'block';
+            }
+            const yardimciSelect = document.getElementById('yardimci-personel');
+            if (yardimciSelect) {
+                yardimciSelect.value = vardiya.yardimci_personel;
+            }
+        }
+        
+        // İşleri işaretle
+        if (vardiya.isler && Array.isArray(vardiya.isler)) {
+            vardiya.isler.forEach(is => {
+                const checkbox = document.querySelector(`input[name="isler"][value="${is}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+        
+        // Notları doldur
+        document.getElementById('vardiya-notlar').value = vardiya.notlar || '';
+        
+        // Kayıt zamanını göster
+        const kayitZamaniDiv = document.getElementById('kayit-zamani');
+        if (kayitZamaniDiv && vardiya.kayitZamani) {
+            kayitZamaniDiv.innerHTML = `<small style="color: #666;">Kayıt Zamanı: ${vardiya.kayitZamani}</small>`;
+        }
+        
+        // Kaydet butonunu devre dışı bırak ve metnini değiştir
+        const saveBtn = document.querySelector('#vardiya-form button[type="submit"]');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.querySelector('.btn-text').textContent = 'Bu Tarihte Kayıt Mevcut';
+        }
+        
+        // Storage'daki mevcut kaydı da temizle ki yeni kayıt yapılabilsin
+        const vardiyaTarih = document.getElementById('vardiya-tarih').value;
+        const vardiyaTipi = document.getElementById('vardiya-tipi').value;
+        const storageKey = `vardiya-${vardiyaTarih}-${vardiyaTipi}`;
+        localStorage.removeItem(storageKey);
+        
+        Utils.showToast(`Bu tarihte ve vardiya tipinde zaten kayıt var: ${vardiya.sorumlu_personel} (${vardiya.vardiya_tipi})`, 'info');
+    },
+
+    /**
      * Vardiya kaydet
      */
     saveVardiya: async function() {
-        // ✅ Tarih kontrolü - aynı tarihte kayıt var mı?
+        const saveBtn = document.querySelector('#vardiya-form button[type="submit"]');
+        
+        // Aynı tarihte ve vardiya tipinde kayıt var mı kontrol et
         const vardiyaTarih = document.getElementById('vardiya-tarih').value;
+        const vardiyaTipi = document.getElementById('vardiya-tipi').value;
+        
         if (!vardiyaTarih) {
             Utils.showToast('Lütfen tarih seçin', 'error');
             return;
         }
         
-        // Aynı tarihte kayıt var mı kontrol et
-        const storageKey = `vardiya-${vardiyaTarih}`;
+        const storageKey = `vardiya-${vardiyaTarih}-${vardiyaTipi}`;
         const existingRecord = Utils.loadFromStorage(storageKey);
         if (existingRecord) {
-            Utils.showToast(`Bu tarihte (${vardiyaTarih}) zaten bir vardiya kaydı var!`, 'warning');
+            // Mevcut kaydı göster
+            this.showExistingVardiya(existingRecord);
             return;
         }
+        
+        // Yardımcı personel bilgisini al
+        const yardimciVar = document.getElementById('yardimci-var');
+        const yardimciPersonel = yardimciVar && yardimciVar.checked ? 
+            document.getElementById('yardimci-personel').value : '';
         
         const formData = {
             id: Date.now().toString(),
             tarih: vardiyaTarih,
             vardiya_tipi: document.getElementById('vardiya-tipi').value,
             sorumlu_personel: document.getElementById('sorumlu-personel').value,
+            yardimci_personel: yardimciPersonel,
             isler: this.getSelectedIsler(),
             notlar: document.getElementById('vardiya-notlar').value,
             kayitZamani: CONFIG.formatDateTime(),
@@ -338,19 +442,25 @@ const Vardiya = {
         vardiyaData.push(formData);
         Utils.saveToStorage('vardiya_data', vardiyaData);
         
-        // Ayrıca tarih bazlı kaydet (kontrol için)
+        // Ayrıca tarih+vardiya tipi bazlı kaydet (kontrol için)
         Utils.saveToStorage(storageKey, formData);
 
-        // Google Sheets'e gönder
+        // VardiyaAPI ile Google Sheets'e gönder
         try {
-            const result = await GoogleSheetsAPI.addVardiyaRecord(formData);
-            if (result.success) {
-                Utils.showToast('Vardiya verileri Google Sheets\'e eklendi', 'success');
+            if (typeof VardiyaAPI !== 'undefined') {
+                const result = await VardiyaAPI.saveVardiya(formData);
+                if (result.success && !result.offline) {
+                    Utils.showToast('Vardiya verileri Google Sheets\'e eklendi', 'success');
+                } else if (result.success && result.offline) {
+                    Utils.showToast('Vardiya yerel olarak kaydedildi (çevrimdışı)', 'warning');
+                } else {
+                    Utils.showToast('Google Sheets\'e eklenemedi: ' + result.error, 'error');
+                }
             } else {
-                Utils.showToast('Google Sheets\'e eklenemedi: ' + result.error, 'error');
+                Utils.showToast('Vardiya yerel olarak kaydedildi', 'success');
             }
         } catch (error) {
-            Utils.showToast('Google Sheets hatası: ' + error.message, 'error');
+            Utils.showToast('Vardiya kaydetme hatası: ' + error.message, 'error');
         }
 
         if (saveBtn) {
@@ -405,6 +515,90 @@ const Vardiya = {
 
             shiftNameEl.textContent = shiftName;
         }
+    },
+
+    // Operator listesi cache
+    operatorList: [],
+    
+    /**
+     * Operator listesini Google Sheets'ten yükle
+     */
+    loadOperators: async function() {
+        console.log('🔍 Operator listesi yükleniyor...');
+        
+        try {
+            // UserAPI var mı kontrol et
+            if (typeof UserAPI === 'undefined') {
+                console.error('❌ UserAPI tanımlı değil!');
+                return;
+            }
+            
+            console.log('✅ UserAPI bulundu, getAllUsers çağrılıyor...');
+            const result = await UserAPI.getAllUsers();
+            
+            console.log('📊 API Yanıtı:', result);
+            
+            if (!result.success) {
+                console.error('❌ API başarısız:', result.error);
+                return;
+            }
+            
+            if (!result.users || result.users.length === 0) {
+                console.warn('⚠️ Kullanıcı listesi boş!');
+                return;
+            }
+            
+            console.log('👥 Toplam kullanıcı:', result.users.length);
+            console.log('👥 Kullanıcılar:', result.users.map(u => ({ name: u.name || u.username, role: u.role, status: u.status })));
+            
+            // Tüm rolleri kontrol et
+            const allRoles = [...new Set(result.users.map(u => u.role))];
+            console.log('🎭 Sistemdeki roller:', allRoles);
+            
+            // Sadece operator rolündeki aktif kullanıcıları al
+            const operators = result.users.filter(u => {
+                const isOperator = u.role === 'operator';
+                const isActive = u.status === 'active' || u.status === undefined || u.status === null;
+                console.log(`  ${u.name || u.username}: role=${u.role}, status=${u.status} → operator=${isOperator}, active=${isActive}`);
+                return isOperator && isActive;
+            });
+            
+            console.log('✅ Filtrelenmiş operatorler:', operators.length);
+            
+            this.operatorList = operators
+                .map(u => u.name || u.username)
+                .filter(name => name);
+            
+            console.log('✅ Son operator listesi:', this.operatorList);
+            
+            // Yardımcı personel select elementini doldur
+            this.populateYardimciSelect();
+            
+        } catch (error) {
+            console.error('❌ Operator listesi yüklenemedi:', error);
+            this.operatorList = [];
+        }
+    },
+
+    /**
+     * Yardımcı personel select elementini doldur
+     */
+    populateYardimciSelect: function() {
+        const select = document.getElementById('yardimci-personel');
+        if (!select) return;
+        
+        // Mevcut options'ları koru (ilk boş option)
+        select.innerHTML = '<option value="">Personel seçiniz...</option>';
+        
+        // Operator listesini ekle
+        this.operatorList.forEach(personel => {
+            const option = document.createElement('option');
+            option.value = personel;
+            option.textContent = personel;
+            select.appendChild(option);
+        });
+        
+        console.log('✅ Yardımcı personel select dolduruldu:', this.operatorList.length, 'kişi');
     }
 };
 

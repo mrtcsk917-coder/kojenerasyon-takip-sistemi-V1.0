@@ -160,7 +160,17 @@ function getAllUsers(sheet) {
         user['Rol'] = 'admin';
       }
       
-      users.push(user);
+      // Frontend uyumlu formata çevir
+      users.push({
+        id: user['ID'] || user['id'] || '',
+        username: user['KullaniciAdi'] || user['username'] || '',
+        password: user['Sifre'] || user['password'] || '',
+        name: user['AdSoyad'] || user['name'] || user['KullaniciAdi'] || '',
+        role: user['Rol'] || user['role'] || 'user',
+        status: user['Durum'] || user['status'] || 'active',
+        createdAt: user['OlusturulmaTarihi'] || user['createdAt'] || '',
+        updatedAt: user['GuncellenmeTarihi'] || user['updatedAt'] || ''
+      });
     }
     
     return {

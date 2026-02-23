@@ -747,9 +747,10 @@
                                     <label class="form-label">
                                         👤 Yardımcı Personel
                                     </label>
-                                    <input type="text" id="yardimci-personel" 
-                                           class="personel-input"
-                                           placeholder="Yardımcı personel adı soyadı giriniz...">
+                                    <select id="yardimci-personel" class="personel-select">
+                                        <option value="">Personel seçiniz...</option>
+                                        <!-- Dinamik olarak doldurulacak -->
+                                    </select>
                                 </div>
                             </div>
 
@@ -769,9 +770,7 @@
                                 </div>
                                 <div class="recent-personel">
                                     <small>Son kullanılanlar: </small>
-                                    <span class="personel-tag" data-personel="Ahmet Yılmaz">Ahmet Yılmaz</span>
-                                    <span class="personel-tag" data-personel="Mehmet Demir">Mehmet Demir</span>
-                                    <span class="personel-tag" data-personel="Ayşe Kaya">Ayşe Kaya</span>
+                                    
                                 </div>
                             </div>
 
@@ -1305,6 +1304,7 @@
     <script src="js/ariza-raporlama.js"></script>
     <script src="js/google-sheets-api.js"></script>
     <script src="js/user-api.js"></script>
+    <script src="js/vardiya-api.js"></script>
     <script src="js/buhar.js"></script>
     <script src="js/raporlar.js"></script>
     <script src="js/records.js"></script>

@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 const App = {
     init: function() {
+        console.log('🚀 Ana uygulama başlatılıyor...');
+        
+        // UserAPI'yi en başta başlat
+        if (window.UserAPI) {
+            UserAPI.init();
+        }
+        
         // Tema yönetimini başlat
         if (window.ThemeManager) {
             ThemeManager.init();
@@ -54,6 +61,11 @@ const App = {
                 CONFIG.autoFillDates();
             }
         }, 200); // 200ms gecikme
+        
+        // UserAPI'yi her sayfada başlat
+        if (window.UserAPI) {
+            UserAPI.init();
+        }
         
         switch(pageId) {
             case 'dashboard':

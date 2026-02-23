@@ -116,11 +116,13 @@ const CONFIG = {
         // Günlük Enerji Verileri
         gunluk_enerji: 'https://script.google.com/macros/s/AKfycbzDiR-gKJPCNxs-odRtt6yp1Qz324rn6jw26K8BogagHNKd8dB-1Yik61j-WRc4Z2xg/exec',
         // Kullanıcı Yönetimi
-        kullanici: 'https://script.google.com/macros/s/AKfycby13Gh9TCQ4P2m4M8iqCvU_WE8of3d0ZtmGUTDM8S-EKMOHguNBeBAj_Qn4Mlljf31Y/exec',
+        kullanici: 'https://script.google.com/macros/s/AKfycbxHmnA469XrvLyrWFlxZOPk7tQSbtAlbSPzh1DohTptXaK38M1dogxeuvPHeduF9LLL/exec',
         // YENI: Günlük Enerji (Yeni)
         gunluk_enerji_yeni: 'https://script.google.com/macros/s/AKfycbw-3C6Ulj7ou_rJ6rgmrKsalKRtE70xEUbKA8cH89JSmQAOmRPi6JAMxhSNsFpGNxUT/exec',
         // YENI: Alternatif URL
         gunluk_enerji_alternatif: 'https://script.google.com/macros/s/AKfycbwhyJ15sDwLFF1dFj-B4Mw7mcu2rpRNLo25w8d3-NQyhpEQD_8UV8H782ty53hyF6bU/exec',
+        // Vardiya Takibi
+        vardiya: 'https://script.google.com/macros/s/AKfycbyegVstGtOh1hzhAnyod6-ux3V4lg8YyChOWgAJEBbWGZmcCMXQzkP0KzqO6Hs0PPzj/exec',
         // Diğer modüller geçici olarak devre dışı
         // kojen_motor: 'URL',
         // kojen_enerji: 'URL',
