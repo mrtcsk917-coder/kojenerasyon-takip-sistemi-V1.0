@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="css/buhar.css">
     <link rel="stylesheet" href="css/dashboard-date-selector.css">
     <link rel="stylesheet" href="css/records.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
     <!-- Login Container -->
@@ -118,6 +118,10 @@
                 <a href="#" class="nav-item" data-page="buhar">
                     <span class="nav-icon">💨</span>
                     <span>Buhar Verileri</span>
+                </a>
+                <a href="kullanici-yonetimi.html" class="nav-item nav-admin-only">
+                    <span class="nav-icon">👥</span>
+                    <span>Kullanıcı Yönetimi</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -960,7 +964,7 @@
                     <div class="header-actions">
                         <div class="admin-badge">
                             <span class="admin-icon">👤</span>
-                            <span>Yönetici Girişi</span>
+                            <span>Admin Girişi</span>
                         </div>
                     </div>
                 </header>
@@ -1068,10 +1072,10 @@
                         <div class="admin-lock">
                             <span class="lock-icon">🔒</span>
                             <h3>Yetki Gerekiyor</h3>
-                            <p>Bu sayfaya sadece admin ve yönetici seviyesindeki kullanıcılar erişebilir.</p>
+                            <p>Bu sayfaya sadece admin seviyesindeki kullanıcılar erişebilir.</p>
                             <button class="btn-admin-login" onclick="BakimTakibi.checkAdmin()">
                                 <span class="btn-icon">🔑</span>
-                                <span>Yönetici Girişi</span>
+                                <span>Admin Girişi</span>
                             </button>
                         </div>
                     </div>
@@ -1300,6 +1304,7 @@
     <script src="js/ariza.js"></script>
     <script src="js/ariza-raporlama.js"></script>
     <script src="js/google-sheets-api.js"></script>
+    <script src="js/user-api.js"></script>
     <script src="js/buhar.js"></script>
     <script src="js/raporlar.js"></script>
     <script src="js/records.js"></script>

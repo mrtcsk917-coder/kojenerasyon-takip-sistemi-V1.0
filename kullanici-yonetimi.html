@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Yönetimi - Kojenerasyon Takip Sistemi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/user-management.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="user-management-container">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="header-content">
+                <h1>👥 Kullanıcı Yönetimi</h1>
+                <div class="header-actions">
+                    <button id="refresh-users-btn" class="btn btn-secondary">
+                        <span>🔄</span> Yenile
+                    </button>
+                    <button id="sync-users-btn" class="btn btn-success">
+                        <span>☁️</span> Senkronize Et
+                    </button>
+                    <button id="add-user-btn" class="btn btn-primary">
+                        <span>➕</span> Yeni Kullanıcı
+                    </button>
+                    <a href="index.html" class="btn btn-outline">
+                        <span>←</span> Ana Sayfa
+                    </a>
+                </div>
+            </div>
+            <p class="page-description">Sistem kullanıcılarını ekleyin, düzenleyin veya silin</p>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="total-users">0</span>
+                    <span class="stat-label">Toplam Kullanıcı</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="active-users">0</span>
+                    <span class="stat-label">Aktif Kullanıcı</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👑</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="admin-users">0</span>
+                    <span class="stat-label">Admin</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">☁️</div>
+                <div class="stat-info">
+                    <span class="stat-value" id="sync-status">-</span>
+                    <span class="stat-label">Son Senkronizasyon</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="filter-role">Rol:</label>
+                <select id="filter-role" class="filter-select">
+                    <option value="">Tüm Roller</option>
+                    <option value="admin">👑 Admin</option>
+                    <option value="operator">⚙️ Operator</option>
+                    <option value="user">👤 Kullanıcı</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-status">Durum:</label>
+                <select id="filter-status" class="filter-select">
+                    <option value="">Tümü</option>
+                    <option value="active">✅ Aktif</option>
+                    <option value="inactive">❌ Pasif</option>
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Pasif</option>
+                </select>
+            </div>
+            <div class="filter-group search-group">
+                <input type="text" id="search-users" placeholder="Kullanıcı ara..." class="search-input">
+                <button id="clear-filters" class="btn btn-outline btn-sm">Filtreleri Temizle</button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-container">
+            <table id="users-table" class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Kullanıcı Adı</th>
+                        <th>Ad Soyad</th>
+                        <th>Rol</th>
+                        <th>Durum</th>
+                        <th>Oluşturma Tarihi</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body">
+                    <!-- Kullanıcılar buraya dinamik olarak eklenecek -->
+                    <tr class="empty-row">
+                        <td colspan="7" class="text-center">
+                            <div class="empty-state">
+                                <span class="empty-icon">📋</span>
+                                <p>Kullanıcı listesi yükleniyor...</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">➕ Yeni Kullanıcı Ekle</h2>
+                <button class="modal-close" id="close-modal">&times;</button>
+            </div>
+            <form id="user-form">
+                <input type="hidden" id="user-id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-username">Kullanıcı Adı *</label>
+                        <input type="text" id="user-username" required 
+                               placeholder="kullanici_adi" 
+                               pattern="[a-zA-Z0-9_]+" 
+                               title="Sadece harf, rakam ve alt çizgi kullanın">
+                        <small class="form-hint">Sadece harf, rakam ve alt çizgi</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-password">Şifre *</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="user-password" required 
+                                   placeholder="********" minlength="4">
+                            <button type="button" class="toggle-password" id="toggle-password">
+                                <span class="eye-icon">👁️</span>
+                            </button>
+                        </div>
+                        <small class="form-hint">En az 4 karakter</small>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-name">Ad Soyad</label>
+                        <input type="text" id="user-name" placeholder="Ahmet Yılmaz">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-role">Rol *</label>
+                        <select id="user-role" required>
+                            <option value="">Rol Seçin</option>
+                            <option value="admin">👑 Admin</option>
+                            <option value="operator">⚙️ Operator</option>
+                            <option value="user">👤 Kullanıcı</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-status">Durum</label>
+                        <select id="user-status">
+                            <option value="active">✅ Aktif</option>
+                            <option value="inactive">❌ Pasif</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="cancel-btn">İptal</button>
+                    <button type="submit" class="btn btn-primary" id="save-user-btn">
+                        <span>💾</span> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal modal-small">
+        <div class="modal-content">
+            <div class="modal-header warning">
+                <h2>⚠️ Kullanıcı Sil</h2>
+                <button class="modal-close" id="close-delete-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="warning-text">
+                    <strong id="delete-username"></strong> kullanıcısını silmek istediğinize emin misiniz?
+                </p>
+                <p class="warning-subtext">Bu işlem geri alınamaz!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="cancel-delete">İptal</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete">
+                    <span>🗑️</span> Sil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Yükleniyor...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/user-api.js"></script>
+    <script src="js/user-management.js"></script>
+</body>
+</html>

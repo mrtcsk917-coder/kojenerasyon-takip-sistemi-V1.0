@@ -284,6 +284,22 @@ const Auth = {
     },
 
     /**
+     * Admin menüsünü göster/gizle
+     */
+    toggleAdminMenu: function() {
+        const currentUser = this.getCurrentUser();
+        const adminMenuItems = document.querySelectorAll('.nav-admin-only');
+        
+        adminMenuItems.forEach(item => {
+            if (currentUser && currentUser.role === 'admin') {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+    },
+
+    /**
      * Uygulamayi goster (giris yapildi)
      */
     showApp: function() {
@@ -296,6 +312,9 @@ const Auth = {
         
         // Kullanici bilgilerini goster
         document.getElementById('user-info').textContent = `Hos geldiniz, ${currentUser.name}`;
+        
+        // Admin menüsünü kontrol et
+        this.toggleAdminMenu();
         
         // Dashboard'i yukle
         if (window.Dashboard) {

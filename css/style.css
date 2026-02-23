@@ -1991,3 +1991,18 @@ html[data-theme="dark"] #dashboard-page::before {
 #dashboard-page .page-header p {
     color: white !important;
 }
+
+/* Admin only navigation item */
+.nav-admin-only {
+    border: 2px dashed #f59e0b;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, transparent 100%);
+}
+
+.nav-admin-only:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, transparent 100%);
+    border-color: #d97706;
+}
+
+.nav-admin-only.hidden {
+    display: none !important;
+}

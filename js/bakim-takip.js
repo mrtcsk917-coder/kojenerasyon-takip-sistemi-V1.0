@@ -25,8 +25,8 @@ const BakimTakibi = {
         const adminStatus = Utils.loadFromStorage('admin_status', false);
         const currentUser = Auth.getCurrentUser();
         
-        // Sadece admin ve yönetici erişebilir - operator engellendi
-        if (currentUser && (currentUser.username === 'admin' || currentUser.username === 'yönetici' || currentUser.role === 'admin' || currentUser.role === 'yönetici' || adminStatus)) {
+        // Sadece admin erişebilir - operator ve user engellendi
+        if (currentUser && (currentUser.username === 'admin' || currentUser.role === 'admin' || adminStatus)) {
             this.isAdmin = true;
             this.showMaintenanceCards();
         } else {
@@ -39,13 +39,13 @@ const BakimTakibi = {
      * Admin giriş kontrolü
      */
     checkAdmin: function() {
-        const password = prompt('Yönetici şifrenizi girin:');
+        const password = prompt('Admin şifrenizi girin:');
         
-        // Demo şifre: 'admin123' veya 'yonetici123'
-        if (password === 'admin123' || password === 'yonetici123') {
+        // Demo şifre: 'admin123'
+        if (password === 'admin123') {
             this.isAdmin = true;
             Utils.saveToStorage('admin_status', true);
-            Utils.showToast('Yönetici girişi başarılı', 'success');
+            Utils.showToast('Admin girişi başarılı', 'success');
             this.showMaintenanceCards();
             this.loadStatistics();
         } else if (password !== null) {

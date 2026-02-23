@@ -29,8 +29,14 @@ const App = {
         // Navigation event'lerini ayarla
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                e.preventDefault();
                 const pageId = item.dataset.page;
+                
+                // data-page yoksa (direkt link) normal navigation yap
+                if (!pageId) {
+                    return; // href'e izin ver
+                }
+                
+                e.preventDefault();
                 
                 // Sayfaya gec
                 Utils.showPage(pageId);
