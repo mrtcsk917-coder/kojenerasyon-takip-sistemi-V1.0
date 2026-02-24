@@ -28,16 +28,13 @@ const UserAPI = {
         if (window.CONFIG && CONFIG.GOOGLE_SHEETS_WEB_APP_URLS && 
             CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.kullanici) {
             this.apiUrl = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.kullanici;
-            console.log('🔗 UserAPI URL bulundu:', this.apiUrl);
-        } else {
-            console.warn('⚠️ UserAPI URL bulunamadı!');
         }
         
         console.log('👤 UserAPI baslatiliyor...');
         this.checkApiStatus();
         
-        // LocalStorage'daki kullanıcıları Google Sheets ile senkronize et
-        this.syncLocalUsersToCloud();
+        // Otomatik senkronizasyon (isteğe bağlı)
+        // this.syncLocalUsersToCloud();
     },
     
     /**
@@ -68,8 +65,6 @@ const UserAPI = {
      */
     getAllUsers: async function() {
         try {
-            console.log('🔍 getAllUsers çağrıldı, apiUrl:', this.apiUrl);
-            
             if (!this.apiUrl) {
                 console.warn('API URL yapilandirilmamis, localStorage kullaniliyor');
                 return { success: true, users: this.getLocalUsers() };
@@ -78,19 +73,16 @@ const UserAPI = {
             const formData = new FormData();
             formData.append('action', 'getAllUsers');
             
-            console.log('📤 API isteği gönderiliyor...');
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
                 body: formData
             });
             
             const result = await response.json();
-            console.log('📥 API yanıtı:', result);
             
             if (result.success) {
                 // LocalStorage'ı güncelle
                 this.saveLocalUsers(result.users);
-                console.log('✅ Kullanıcılar başarıyla alındı:', result.users.length, 'kişi');
                 return result;
             } else {
                 throw new Error(result.error);
@@ -425,38 +417,6 @@ const UserAPI = {
         }
         
         return { success: false, error: 'Kullanici adi veya sifre hatali' };
-    },
-    
-    /**
-     * LocalStorage'daki kullanıcıları Google Sheets'e senkronize et
-     */
-    syncLocalUsersToCloud: async function() {
-        try {
-            if (!this.apiUrl || !this.isOnline) {
-                console.log('📴 Senkronizasyon atlandı: API çevrimdışı');
-                return;
-            }
-            
-            const localUsers = this.getLocalUsers();
-            console.log('🔄 LocalStorage kullanıcıları senkronize ediliyor:', localUsers.length, 'kişi');
-            
-            // Her kullanıcıyı Google Sheets'e kaydet
-            for (const user of localUsers) {
-                try {
-                    const result = await this.saveUser(user);
-                    if (result.success && !result.offline) {
-                        console.log(`✅ ${user.name || user.username} Google Sheets'e senkronize edildi`);
-                    }
-                } catch (error) {
-                    console.error(`❌ ${user.name || user.username} senkronizasyon hatası:`, error.message);
-                }
-            }
-            
-            console.log('🎉 Senkronizasyon tamamlandı');
-            
-        } catch (error) {
-            console.error('❌ Senkronizasyon hatası:', error);
-        }
     }
 };
 

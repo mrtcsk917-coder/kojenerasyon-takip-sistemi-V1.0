@@ -1,0 +1,876 @@
+/* ===== VARDİYA SAYFASI MODERN TASARIM ===== */
+
+/* Page Layout */
+#vardiya-page .content-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 20px;
+    height: calc(100vh - 120px);
+    overflow: hidden;
+}
+
+/* Modern Page Header */
+#vardiya-page .page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 24px 32px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+#vardiya-page .page-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+#vardiya-page .main-logo h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#vardiya-page .main-logo p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.current-status {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px 20px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: white;
+}
+
+.status-badge.active {
+    color: #10b981;
+}
+
+/* Form Section */
+#vardiya-page .form-section {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 16px;
+    border: 1px solid #2563eb;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    height: 100%;
+    overflow-y: auto;
+    color: white;
+}
+
+/* Records Section */
+#vardiya-page .records-section {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Section Header */
+.section-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.section-header h3 {
+    font-size: 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+
+.section-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Modern Form Groups */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 8px;
+}
+
+/* Otomatik Doldurma Alanı */
+.auto-fill-section {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.auto-fill-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .auto-fill-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.auto-fill-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.auto-fill-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+}
+
+.auto-filled-input,
+.auto-fill.personel-input,
+.personel-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.9);
+    color: #1f2937;
+    transition: all 0.3s ease;
+}
+
+.personel-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3e%3cpath fill='%23374151' d='M6 9L10 5l4 4-4 4z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px;
+    padding-right: 36px;
+}
+
+.personel-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.auto-filled-input:focus,
+.auto-filled-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.auto-filled-input:read-only {
+    background: rgba(255, 255, 255, 0.7);
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-change-date {
+    margin-top: 8px;
+    padding: 8px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.btn-change-date:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+.shift-info {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.shift-time {
+    background: #10b981;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Yardımcı Vardıya */
+.yardimci-section {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
+}
+
+.yardimci-section.hidden {
+    display: none;
+}
+
+.label-note {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: normal;
+    margin-left: 8px;
+}
+
+.yardimci-options {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    margin-bottom: 16px;
+}
+
+.yardimci-personel-group {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.yardimci-personel-group .personel-input {
+    text-transform: uppercase;
+}
+
+.radio-option {
+    flex: 1;
+    cursor: pointer;
+}
+
+.radio-option input {
+    display: none;
+}
+
+.radio-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+}
+
+.radio-label i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #6b7280;
+}
+
+.option-desc {
+    display: block;
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 4px;
+}
+
+.radio-option input:checked + .radio-label {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.radio-option input:checked + .radio-label i,
+.radio-option input:checked + .radio-label small {
+    color: white;
+}
+
+/* Personel Girişi */
+.personel-input-wrapper {
+    position: relative;
+}
+
+.personel-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 15px;
+    background: white;
+    color: #1f2937;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.personel-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.personel-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.personel-suggestions.show {
+    display: block;
+}
+
+.suggestion-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.suggestion-item:hover {
+    background: #f3f4f6;
+}
+
+.recent-personel {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.personel-tag {
+    display: inline-block;
+    background: #f3f4f6;
+    color: #374151;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.personel-tag:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: scale(1.05);
+}
+
+.personel-tag.recent-user {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: #667eea;
+    font-weight: 500;
+}
+
+.personel-tag.recent-user:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.no-recent {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 12px;
+}
+
+/* İşler Checklist */
+.isler-checklist {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    transition: background 0.2s;
+}
+
+.checklist-item:last-child {
+    border-bottom: none;
+}
+
+.checklist-item:hover {
+    background: #f9fafb;
+}
+
+.checklist-item input {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    accent-color: #667eea;
+}
+
+.checklist-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.checklist-label i {
+    width: 20px;
+    color: #6b7280;
+}
+
+.checklist-text {
+    flex: 1;
+    color: #374151;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.checklist-item input:checked + .checklist-label i {
+    color: #10b981;
+}
+
+.checklist-item input:checked + .checklist-label .checklist-text {
+    color: #10b981;
+}
+
+/* Notlar */
+.notes-container {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.notes-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: #1f2937;
+    font-size: 14px;
+    resize: vertical;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.notes-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.notes-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.char-count {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.btn-add-template {
+    padding: 6px 12px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn-add-template:hover {
+    background: #059669;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.vardiya-save-btn {
+    flex: 1;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+}
+
+.vardiya-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-text {
+    flex: 1;
+    text-align: center;
+}
+
+.btn-loading {
+    display: none;
+}
+
+.vardiya-save-btn.loading .btn-text {
+    display: none;
+}
+
+.vardiya-save-btn.loading .btn-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Records Section Styles */
+.records-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-input,
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: white;
+    color: #1f2937;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-filter {
+    padding: 8px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.btn-filter:hover {
+    background: #5a67d8;
+    transform: translateY(-1px);
+}
+
+.btn-reset-filter {
+    padding: 8px 16px;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.btn-reset-filter:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+.vardiya-list {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.vardiya-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.vardiya-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+}
+
+.vardiya-item.synced {
+    border-left: 4px solid #10b981;
+}
+
+.vardiya-item.pending {
+    border-left: 4px solid #f59e0b;
+}
+
+.vardiya-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.vardiya-date {
+    font-weight: 600;
+    color: #1f2937;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.vardiya-shift {
+    font-size: 14px;
+    color: #6b7280;
+    background: #f9fafb;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.vardiya-sync {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.sync-status.synced {
+    color: #10b981;
+}
+
+.sync-status.pending {
+    color: #f59e0b;
+}
+
+.vardiya-personel {
+    font-size: 15px;
+    color: #374151;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.vardiya-isler {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.vardiya-notlar {
+    font-size: 14px;
+    color: #4b5563;
+    background: #f9fafb;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid #667eea;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.vardiya-sync-time {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    #vardiya-page .content-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .yardimci-options {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 768px) {
+    #vardiya-page .page-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .auto-fill-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .filter-controls {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .filter-input,
+    .filter-select {
+        width: 100%;
+    }
+}
+
+/* Dark Theme */
+[data-theme="dark"] #vardiya-page .form-section,
+[data-theme="dark"] #vardiya-page .records-section {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme="dark"] .auto-fill-section,
+[data-theme="dark"] .yardimci-section,
+[data-theme="dark"] .isler-checklist,
+[data-theme="dark"] .notes-container {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+[data-theme="dark"] .auto-filled-input,
+[data-theme="dark"] .auto-filled-select,
+[data-theme="dark"] .personel-input,
+[data-theme="dark"] .notes-textarea {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+[data-theme="dark"] .vardiya-item {
+    background: #1f2937;
+    border-color: #374151;
+}
+
+[data-theme="dark"] .vardiya-item:hover {
+    border-color: #667eea;
+}
+
+[data-theme="dark"] .section-header {
+    border-bottom-color: #374151;
+}
+
+[data-theme="dark"] .section-header h3 {
+    color: #f9fafb;
+}
+
+[data-theme="dark"] .form-label {
+    color: #d1d5db;
+}
+
+[data-theme="dark"] .checklist-item {
+    border-bottom-color: #374151;
+}
+
+[data-theme="dark"] .checklist-item:hover {
+    background: #374151;
+}

@@ -39,48 +39,24 @@ const Auth = {
     /**
      * Giris yap
      */
-    login: async function(username, password, rememberMe = false) {
-        try {
-            // Önce UserAPI ile kontrol et
-            if (window.UserAPI && UserAPI.apiUrl) {
-                const result = await UserAPI.validateLogin(username, password);
-                if (result.success) {
-                    // Oturum bilgilerini kaydet
-                    Utils.saveToStorage(CONFIG.STORAGE_KEYS.CURRENT_USER, result.user);
-                    
-                    if (rememberMe) {
-                        localStorage.setItem(CONFIG.STORAGE_KEYS.REMEMBER_ME, username);
-                    } else {
-                        localStorage.removeItem(CONFIG.STORAGE_KEYS.REMEMBER_ME);
-                    }
-                    
-                    return { success: true, user: result.user };
-                }
+    login: function(username, password, rememberMe = false) {
+        const users = this.getUsers();
+        const user = users.find(u => u.username === username && u.password === password);
+        
+        if (user) {
+            // Oturum bilgilerini kaydet
+            Utils.saveToStorage(CONFIG.STORAGE_KEYS.CURRENT_USER, user);
+            
+            if (rememberMe) {
+                localStorage.setItem(CONFIG.STORAGE_KEYS.REMEMBER_ME, username);
+            } else {
+                localStorage.removeItem(CONFIG.STORAGE_KEYS.REMEMBER_ME);
             }
             
-            // LocalStorage fallback
-            const users = this.getUsers();
-            const user = users.find(u => u.username === username && u.password === password);
-            
-            if (user) {
-                // Oturum bilgilerini kaydet
-                Utils.saveToStorage(CONFIG.STORAGE_KEYS.CURRENT_USER, user);
-                
-                if (rememberMe) {
-                    localStorage.setItem(CONFIG.STORAGE_KEYS.REMEMBER_ME, username);
-                } else {
-                    localStorage.removeItem(CONFIG.STORAGE_KEYS.REMEMBER_ME);
-                }
-                
-                return { success: true, user: user };
-            }
-            
-            return { success: false, message: 'Kullanici adi veya sifre hatali' };
-            
-        } catch (error) {
-            console.error('Giriş hatası:', error);
-            return { success: false, message: 'Giriş hatası' };
+            return { success: true, user: user };
         }
+        
+        return { success: false, message: 'Kullanici adi veya sifre hatali' };
     },
 
     /**
@@ -232,7 +208,7 @@ const Auth = {
         
         // Giris formu submit
         if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
+            loginForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
                 // Caps Lock kontrolü
@@ -245,29 +221,15 @@ const Auth = {
                 const password = document.getElementById('password').value;
                 const rememberMe = document.getElementById('remember-me').checked;
                 
-                // Loading göster
-                const submitBtn = loginForm.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Giriş yapılıyor...';
+                const result = this.login(username, password, rememberMe);
                 
-                try {
-                    const result = await this.login(username, password, rememberMe);
-                    
-                    if (result.success) {
-                        Utils.showToast('Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
-                        setTimeout(() => {
-                            this.showApp();
-                        }, 500);
-                    } else {
-                        Utils.showToast(result.message, 'error');
-                    }
-                } catch (error) {
-                    Utils.showToast('Giriş hatası', 'error');
-                } finally {
-                    // Butonu eski haline getir
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
+                if (result.success) {
+                    Utils.showToast('Giris basarili! Yonlendiriliyorsunuz...', 'success');
+                    setTimeout(() => {
+                        this.showApp();
+                    }, 500);
+                } else {
+                    Utils.showToast(result.message, 'error');
                 }
             });
         }

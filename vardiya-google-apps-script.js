@@ -12,27 +12,8 @@
  * 6. URL'yi config.js'e ekleyin
  * 
  * Sheet yapısı otomatik oluşturulur:
- * - ID, Tarih, VardiyaTipi, SorumluPersonel, YardimciPersonel, Isler, Notlar, KayitZamani
+ * - ID, Tarih, VardiyaTipi, VaridiyaPersonel, YardimciPersonel, YapilanIsler, Notlar, KayitTarihi, Durum
  */
-
-/**
- * Tarih formatını Türkçe'ye çevir
- */
-function formatDateToTurkish(dateString) {
-  if (!dateString) return '';
-  
-  const date = new Date(dateString);
-  const months = [
-    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
-  ];
-  
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  
-  return `${day} ${month} ${year}`;
-}
 
 /**
  * POST isteklerini işle
@@ -52,8 +33,8 @@ function doPost(e) {
         result = getAllVardiyalar(sheet);
         break;
         
-      case 'getVardiyaByDate':
-        result = getVardiyaByDate(sheet, vardiyaData.tarih);
+      case 'getVardiyaById':
+        result = getVardiyaById(sheet, vardiyaData.id);
         break;
         
       case 'saveVardiya':
@@ -68,16 +49,16 @@ function doPost(e) {
         result = deleteVardiya(sheet, vardiyaData.id);
         break;
         
-      case 'getVardiyalarByDateRange':
-        result = getVardiyalarByDateRange(sheet, vardiyaData.baslangic, vardiyaData.bitis);
+      case 'filterVardiyalar':
+        result = filterVardiyalar(sheet, vardiyaData);
         break;
         
       case 'test':
-        result = { success: true, message: 'Vardiya API çalışıyor', timestamp: new Date().toISOString() };
+        result = { success: true, message: 'Vardiya API calisiyor', timestamp: new Date().toISOString() };
         break;
         
       default:
-        result = { success: false, error: 'Bilinmeyen işlem: ' + action };
+        result = { success: false, error: 'Bilinmeyen islem: ' + action };
     }
     
     return ContentService.createTextOutput(JSON.stringify(result))
@@ -99,51 +80,52 @@ function doPost(e) {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     success: true,
-    message: 'Vardiya Takibi API çalışıyor',
+    message: 'Vardiya Takibi API calisiyor',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    actions: ['getAllVardiyalar', 'getVardiyaByDate', 'saveVardiya', 'updateVardiya', 'deleteVardiya', 'getVardiyalarByDateRange']
+    actions: ['getAllVardiyalar', 'getVardiyaById', 'saveVardiya', 'updateVardiya', 'deleteVardiya', 'filterVardiyalar']
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
- * Sheet oluştur veya mevcut olanı al
+ * Sheet'i al veya oluştur
  */
 function getOrCreateSheet() {
-  const sheetName = "Vardiyalar";
-  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Vardiyalar');
   
   if (!sheet) {
-    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(sheetName);
+    sheet = ss.insertSheet('Vardiyalar');
     
-    // Başlıkları ekle
-    const headers = [
-      'ID',
-      'Tarih',
-      'Tarih_TR', // Türkçe tarih
-      'VardiyaTipi',
-      'SorumluPersonel',
-      'YardimciPersonel',
-      'Isler',
-      'Notlar',
-      'KayitZamani'
-    ];
+    // Header'ları oluştur
+    const headers = ['ID', 'Tarih', 'VardiyaTipi', 'VardiyaPersonel', 'YardimciPersonel', 'YapilanIsler', 'Notlar', 'KayitTarihi', 'Durum'];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers])
-         .setFontWeight('bold')
-         .setBackground('#f0f0f0');
-         
-    // Sütun genişliklerini ayarla
-    sheet.autoResizeColumns();
+    // Header formatı
+    sheet.getRange(1, 1, 1, headers.length)
+      .setFontWeight('bold')
+      .setBackground('#2563eb')
+      .setFontColor('white');
     
-    Logger.log('Vardiyalar sheeti oluşturuldu');
+    // Kolon genişlikleri
+    sheet.setColumnWidth(1, 80);   // ID
+    sheet.setColumnWidth(2, 120);  // Tarih
+    sheet.setColumnWidth(3, 100);  // VardiyaTipi
+    sheet.setColumnWidth(4, 150);  // VardiyaPersonel
+    sheet.setColumnWidth(5, 150);  // YardimciPersonel
+    sheet.setColumnWidth(6, 200);  // YapilanIsler
+    sheet.setColumnWidth(7, 300);  // Notlar
+    sheet.setColumnWidth(8, 150);  // KayitTarihi
+    sheet.setColumnWidth(9, 80);   // Durum
+    
+    Logger.log('Vardiyalar sheeti olusturuldu');
   }
   
   return sheet;
 }
 
 /**
- * Tüm vardiyaları getir
+ * Tüm vardiya kayıtlarını getir
  */
 function getAllVardiyalar(sheet) {
   try {
@@ -159,19 +141,11 @@ function getAllVardiyalar(sheet) {
         vardiya[header] = row[index] || '';
       });
       
-      // Frontend uyumlu formata çevir
-      vardiyalar.push({
-        id: vardiya['ID'] || vardiya['id'] || '',
-        tarih: vardiya['Tarih'] || vardiya['tarih'] || '',
-        tarih_tr: vardiya['Tarih_TR'] || vardiya['tarih_tr'] || '',
-        vardiya_tipi: vardiya['VardiyaTipi'] || vardiya['vardiya_tipi'] || '',
-        sorumlu_personel: vardiya['SorumluPersonel'] || vardiya['sorumlu_personel'] || '',
-        yardimci_personel: vardiya['YardimciPersonel'] || vardiya['yardimci_personel'] || '',
-        isler: vardiya['Isler'] ? vardiya['Isler'].split(', ').filter(is => is.trim()) : [],
-        notlar: vardiya['Notlar'] || vardiya['notlar'] || '',
-        kayitZamani: vardiya['KayitZamani'] || vardiya['kayitZamani'] || ''
-      });
+      vardiyalar.push(vardiya);
     }
+    
+    // En yeni kayıtlar üstte olacak şekilde sırala
+    vardiyalar.reverse();
     
     return {
       success: true,
@@ -186,51 +160,34 @@ function getAllVardiyalar(sheet) {
 }
 
 /**
- * Tarihe göre vardiya getir
+ * ID'ye göre vardiya getir
  */
-function getVardiyaByDate(sheet, data) {
+function getVardiyaById(sheet, id) {
   try {
-    if (!data.tarih) {
-      return { success: false, error: 'Tarih gerekli' };
+    if (!id) {
+      return { success: false, error: 'Vardiya ID gerekli' };
     }
     
-    const sheetData = sheet.getDataRange().getValues();
-    const headers = sheetData[0];
-    const tarihIndex = headers.indexOf('Tarih');
-    const vardiyaTipiIndex = headers.indexOf('VardiyaTipi');
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const idIndex = headers.indexOf('ID');
     
-    if (tarihIndex === -1) {
-      return { success: false, error: 'Tarih kolonu bulunamadi' };
+    if (idIndex === -1) {
+      return { success: false, error: 'ID kolonu bulunamadi' };
     }
     
-    for (let i = 1; i < sheetData.length; i++) {
-      if (sheetData[i][tarihIndex] === data.tarih) {
-        const row = sheetData[i];
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][idIndex] === id) {
         const vardiya = {};
-        
         headers.forEach((header, index) => {
-          vardiya[header] = row[index] || '';
+          vardiya[header] = data[i][index] || '';
         });
         
-        // Frontend uyumlu formata çevir
-        return {
-          success: true,
-          vardiya: {
-            id: vardiya['ID'] || vardiya['id'] || '',
-            tarih: vardiya['Tarih'] || vardiya['tarih'] || '',
-            tarih_tr: vardiya['Tarih_TR'] || vardiya['tarih_tr'] || '',
-            vardiya_tipi: vardiya['VardiyaTipi'] || vardiya['vardiya_tipi'] || '',
-            sorumlu_personel: vardiya['SorumluPersonel'] || vardiya['sorumlu_personel'] || '',
-            yardimci_personel: vardiya['YardimciPersonel'] || vardiya['yardimci_personel'] || '',
-            isler: vardiya['Isler'] ? vardiya['Isler'].split(', ').filter(is => is.trim()) : [],
-            notlar: vardiya['Notlar'] || vardiya['notlar'] || '',
-            kayitZamani: vardiya['KayitZamani'] || vardiya['kayitZamani'] || ''
-          }
-        };
+        return { success: true, vardiya: vardiya };
       }
     }
     
-    return { success: false, error: 'Vardiya bulunamadi' };
+    return { success: false, error: 'Vardiya bulunamadi: ' + id };
     
   } catch (error) {
     return { success: false, error: error.toString() };
@@ -243,38 +200,40 @@ function getVardiyaByDate(sheet, data) {
 function saveVardiya(sheet, vardiyaData) {
   try {
     // Zorunlu alan kontrolü
-    if (!vardiyaData.tarih || !vardiyaData.sorumlu_personel) {
-      return { success: false, error: 'Tarih ve sorumlu personel zorunlu' };
+    if (!vardiyaData.tarih || !vardiyaData.vardiyaPersonel) {
+      return { success: false, error: 'Tarih ve vardiya personel zorunlu' };
     }
     
-    // ID kontrolü
-    if (!vardiyaData.id) {
-      vardiyaData.id = Date.now().toString();
-    }
+    const now = new Date().toLocaleString('tr-TR');
+    const id = vardiyaData.id || Utilities.getUuid();
     
-    // Türkçe tarih formatı
-    const turkishDate = formatDateToTurkish(vardiyaData.tarih);
+    // Yapılan işleri array'den string'e çevir
+    const yapilanIsler = Array.isArray(vardiyaData.yapilanIsler) 
+      ? vardiyaData.yapilanIsler.join(', ') 
+      : vardiyaData.yapilanIsler || '';
     
-    // Yeni satır olarak ekle
     const newRow = [
-      vardiyaData.id,
+      id,
       vardiyaData.tarih,
-      turkishDate, // Türkçe tarih
-      vardiyaData.vardiya_tipi,
-      vardiyaData.sorumlu_personel,
-      vardiyaData.yardimci_personel || '',
-      vardiyaData.isler ? vardiyaData.isler.join(', ') : '',
+      vardiyaData.vardiyaTipi || 'gunduz',
+      vardiyaData.vardiyaPersonel,
+      vardiyaData.yardimciPersonel || '',
+      yapilanIsler,
       vardiyaData.notlar || '',
-      vardiyaData.kayitZamani || new Date().toISOString()
+      now,
+      'active'
     ];
     
     sheet.appendRow(newRow);
     
-    return { 
-      success: true, 
-      message: 'Vardiya başarıyla kaydedildi',
-      vardiyaId: vardiyaData.id,
-      turkishDate: turkishDate
+    Logger.log('Yeni vardiya eklendi: ' + vardiyaData.vardiyaPersonel);
+    
+    return {
+      success: true,
+      message: 'Vardiya basariyla kaydedildi',
+      vardiyaId: id,
+      vardiyaPersonel: vardiyaData.vardiyaPersonel,
+      timestamp: new Date().toISOString()
     };
     
   } catch (error) {
@@ -288,7 +247,7 @@ function saveVardiya(sheet, vardiyaData) {
 function updateVardiya(sheet, vardiyaData) {
   try {
     if (!vardiyaData.id) {
-      return { success: false, error: 'Güncellenecek vardiya ID gerekli' };
+      return { success: false, error: 'Guncellenecek vardiya ID gerekli' };
     }
     
     const data = sheet.getDataRange().getValues();
@@ -305,31 +264,38 @@ function updateVardiya(sheet, vardiyaData) {
     }
     
     if (rowIndex === -1) {
-      return { success: false, error: 'Güncellenecek vardiya bulunamadı: ' + vardiyaData.id };
+      return { success: false, error: 'Guncellenecek vardiya bulunamadi: ' + vardiyaData.id };
     }
     
     // Güncelleme yap
     const now = new Date().toLocaleString('tr-TR');
     
-    if (vardiyaData.vardiya_tipi !== undefined) {
+    if (vardiyaData.tarih) {
+      const tarihIndex = headers.indexOf('Tarih');
+      sheet.getRange(rowIndex, tarihIndex + 1).setValue(vardiyaData.tarih);
+    }
+    
+    if (vardiyaData.vardiyaTipi) {
       const tipIndex = headers.indexOf('VardiyaTipi');
-      sheet.getRange(rowIndex, tipIndex + 1).setValue(vardiyaData.vardiya_tipi);
+      sheet.getRange(rowIndex, tipIndex + 1).setValue(vardiyaData.vardiyaTipi);
     }
     
-    if (vardiyaData.sorumlu_personel !== undefined) {
-      const sorumluIndex = headers.indexOf('SorumluPersonel');
-      sheet.getRange(rowIndex, sorumluIndex + 1).setValue(vardiyaData.sorumlu_personel);
+    if (vardiyaData.vardiyaPersonel) {
+      const vardiyaIndex = headers.indexOf('VardiyaPersonel');
+      sheet.getRange(rowIndex, vardiyaIndex + 1).setValue(vardiyaData.vardiyaPersonel);
     }
     
-    if (vardiyaData.yardimci_personel !== undefined) {
+    if (vardiyaData.yardimciPersonel !== undefined) {
       const yardimciIndex = headers.indexOf('YardimciPersonel');
-      sheet.getRange(rowIndex, yardimciIndex + 1).setValue(vardiyaData.yardimci_personel);
+      sheet.getRange(rowIndex, yardimciIndex + 1).setValue(vardiyaData.yardimciPersonel);
     }
     
-    if (vardiyaData.isler !== undefined) {
-      const islerIndex = headers.indexOf('Isler');
-      const islerString = JSON.stringify(vardiyaData.isler);
-      sheet.getRange(rowIndex, islerIndex + 1).setValue(islerString);
+    if (vardiyaData.yapilanIsler !== undefined) {
+      const islerIndex = headers.indexOf('YapilanIsler');
+      const yapilanIsler = Array.isArray(vardiyaData.yapilanIsler) 
+        ? vardiyaData.yapilanIsler.join(', ') 
+        : vardiyaData.yapilanIsler;
+      sheet.getRange(rowIndex, islerIndex + 1).setValue(yapilanIsler);
     }
     
     if (vardiyaData.notlar !== undefined) {
@@ -337,15 +303,20 @@ function updateVardiya(sheet, vardiyaData) {
       sheet.getRange(rowIndex, notlarIndex + 1).setValue(vardiyaData.notlar);
     }
     
-    // Kayıt zamanını güncelle
-    const kayitIndex = headers.indexOf('KayitZamani');
+    if (vardiyaData.durum) {
+      const durumIndex = headers.indexOf('Durum');
+      sheet.getRange(rowIndex, durumIndex + 1).setValue(vardiyaData.durum);
+    }
+    
+    // Kayıt tarihini güncelle
+    const kayitIndex = headers.indexOf('KayitTarihi');
     sheet.getRange(rowIndex, kayitIndex + 1).setValue(now);
     
-    Logger.log('Vardiya güncellendi: ' + vardiyaData.id);
+    Logger.log('Vardiya guncellendi: ' + vardiyaData.id);
     
     return {
       success: true,
-      message: 'Vardiya başarıyla güncellendi',
+      message: 'Vardiya basariyla guncellendi',
       vardiyaId: vardiyaData.id,
       timestamp: new Date().toISOString()
     };
@@ -378,7 +349,7 @@ function deleteVardiya(sheet, id) {
     }
     
     if (rowIndex === -1) {
-      return { success: false, error: 'Silinecek vardiya bulunamadı: ' + id };
+      return { success: false, error: 'Silinecek vardiya bulunamadi: ' + id };
     }
     
     // Sil
@@ -388,7 +359,7 @@ function deleteVardiya(sheet, id) {
     
     return {
       success: true,
-      message: 'Vardiya başarıyla silindi',
+      message: 'Vardiya basariyla silindi',
       vardiyaId: id,
       timestamp: new Date().toISOString()
     };
@@ -399,52 +370,65 @@ function deleteVardiya(sheet, id) {
 }
 
 /**
- * Tarih aralığına göre vardiyaları getir
+ * Vardiya filtreleme
  */
-function getVardiyalarByDateRange(sheet, baslangic, bitis) {
+function filterVardiyalar(sheet, filters) {
   try {
-    if (!baslangic || !bitis) {
-      return { success: false, error: 'Başlangıç ve bitiş tarihleri gerekli' };
-    }
-    
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
-    const tarihIndex = headers.indexOf('Tarih');
-    
-    if (tarihIndex === -1) {
-      return { success: false, error: 'Tarih kolonu bulunamadı' };
-    }
-    
-    const vardiyalar = [];
+    const filteredVardiyalar = [];
     
     for (let i = 1; i < data.length; i++) {
-      const rowTarih = data[i][tarihIndex];
+      const row = data[i];
+      const vardiya = {};
       
-      // Tarih aralığında mı kontrol et
-      if (rowTarih >= baslangic && rowTarih <= bitis) {
-        const vardiya = {};
-        headers.forEach((header, index) => {
-          vardiya[header] = data[i][index] || '';
-        });
+      headers.forEach((header, index) => {
+        vardiya[header] = row[index] || '';
+      });
+      
+      // Filtreleri uygula
+      let include = true;
+      
+      if (filters.personel) {
+        const personelLower = filters.personel.toLowerCase();
+        const vardiyaLower = vardiya.vardiyaPersonel.toLowerCase();
+        const yardimciLower = vardiya.YardimciPersonel.toLowerCase();
         
-        // İşler string'ini JSON'a çevir
-        if (vardiya.Isler && typeof vardiya.Isler === 'string') {
-          try {
-            vardiya.Isler = JSON.parse(vardiya.Isler);
-          } catch (e) {
-            vardiya.Isler = [];
-          }
+        if (!vardiyaLower.includes(personelLower) && 
+            !yardimciLower.includes(personelLower)) {
+          include = false;
         }
-        
-        vardiyalar.push(vardiya);
+      }
+      
+      if (filters.vardiyaTipi && vardiya.VardiyaTipi !== filters.vardiyaTipi) {
+        include = false;
+      }
+      
+      if (filters.tarihBaslangic && vardiya.Tarih < filters.tarihBaslangic) {
+        include = false;
+      }
+      
+      if (filters.tarihBitis && vardiya.Tarih > filters.tarihBitis) {
+        include = false;
+      }
+      
+      if (filters.durum && vardiya.Durum !== filters.durum) {
+        include = false;
+      }
+      
+      if (include) {
+        filteredVardiyalar.push(vardiya);
       }
     }
     
+    // En yeni kayıtlar üstte olacak şekilde sırala
+    filteredVardiyalar.reverse();
+    
     return {
       success: true,
-      vardiyalar: vardiyalar,
-      count: vardiyalar.length,
-      tarihAraligi: { baslangic: baslangic, bitis: bitis },
+      vardiyalar: filteredVardiyalar,
+      count: filteredVardiyalar.length,
+      filters: filters,
       timestamp: new Date().toISOString()
     };
     
