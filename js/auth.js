@@ -48,8 +48,14 @@ const Auth = {
      * Giris yap
      */
     login: function(username, password, rememberMe = false) {
+        console.log('🔐 Giriş denemesi:', username);
+        
+        // Önce localStorage'dan kullanıcıları yükle
         const users = this.getUsers();
+        console.log('👥 Mevcut kullanıcılar:', users);
+        
         const user = users.find(u => u.username === username && u.password === password);
+        console.log('🔍 Bulunan kullanıcı:', user);
         
         if (user) {
             // Oturum bilgilerini kaydet
