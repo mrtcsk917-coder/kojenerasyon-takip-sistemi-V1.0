@@ -16,6 +16,14 @@ const Auth = {
     },
 
     /**
+     * Operatör rolündeki kullanıcıları al
+     */
+    getOperators: function() {
+        const users = this.getUsers();
+        return users.filter(user => user.role === 'operator');
+    },
+
+    /**
      * Kullanici listesini al
      */
     getUsers: function() {

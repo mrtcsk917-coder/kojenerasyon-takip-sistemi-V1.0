@@ -8,9 +8,101 @@ const Vardiya = {
      */
     init: function() {
         this.setupEventListeners();
-        this.setupAutoFill();
+        this.setAutoDate();
+        this.setAutoVardiyaTipi();
+        this.loadOperatorsToDropdowns();
         this.loadVardiyalar();
         this.updateCurrentVardiya();
+    },
+
+    /**
+     * Otomatik tarih ayarla
+     */
+    setAutoDate: function() {
+        const tarihInput = document.getElementById('vardiya-tarih');
+        if (tarihInput) {
+            // Bugünün tarihini YYYY-MM-DD formatında ayarla
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            tarihInput.value = formattedDate;
+            
+            // Auto-fill değerini de güncelle
+            const autoDateEl = document.getElementById('auto-date');
+            if (autoDateEl) {
+                const displayDate = CONFIG.formatDate(today);
+                autoDateEl.querySelector('.auto-filled-input').value = formattedDate;
+            }
+        }
+    },
+
+    /**
+     * Otomatik vardiya tipi ayarla
+     */
+    setAutoVardiyaTipi: function() {
+        const vardiyaTipiSelect = document.getElementById('vardiya-tipi');
+        console.log('🔍 Vardiya tipi select elementi:', vardiyaTipiSelect);
+        
+        if (vardiyaTipiSelect) {
+            const hour = new Date().getHours();
+            console.log('🕐 Mevcut saat:', hour);
+            
+            let selectedVardiya = '';
+            
+            // Vardiya saat dilimleri:
+            // 00:00-08:00 = gece
+            // 08:00-16:00 = gunduz  
+            // 16:00-24:00 = aksam
+            
+            if (hour >= 0 && hour < 8) {
+                selectedVardiya = 'gece';
+            } else if (hour >= 8 && hour < 16) {
+                selectedVardiya = 'gunduz';
+            } else {
+                selectedVardiya = 'aksam';
+            }
+            
+            console.log('✅ Seçilen vardiya:', selectedVardiya);
+            vardiyaTipiSelect.value = selectedVardiya;
+            console.log('📝 Set edilen değer:', vardiyaTipiSelect.value);
+            
+            // Vardiya değişim event'ini tetikle (yardımcı personel bölümü için)
+            vardiyaTipiSelect.dispatchEvent(new Event('change'));
+        }
+    },
+
+    /**
+     * Dropdown'lara operatörleri yükle
+     */
+    loadOperatorsToDropdowns: function() {
+        const operators = Auth.getOperators();
+        
+        // Vardiya personeli dropdown
+        const vardiyaSelect = document.getElementById('vardiya-personeli');
+        if (vardiyaSelect) {
+            vardiyaSelect.innerHTML = '<option value="">Personel seçiniz...</option>';
+            operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.name;
+                option.textContent = operator.name;
+                vardiyaSelect.appendChild(option);
+            });
+        }
+        
+        // Yardımcı personel dropdown
+        const yardimciSelect = document.getElementById('yardimci-personel');
+        if (yardimciSelect) {
+            yardimciSelect.innerHTML = '<option value="">Yardımcı personel seçiniz...</option>';
+            operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.name;
+                option.textContent = operator.name;
+                yardimciSelect.appendChild(option);
+            });
+        }
     },
 
     /**
@@ -23,24 +115,6 @@ const Vardiya = {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.saveVardiya();
-            });
-        }
-
-        // Personel input'u
-        const personelInput = document.getElementById('sorumlu-personel');
-        if (personelInput) {
-            personelInput.addEventListener('input', (e) => {
-                this.showPersonelSuggestions(e.target.value);
-            });
-
-            personelInput.addEventListener('focus', () => {
-                this.showPersonelSuggestions(personelInput.value);
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.personel-input-wrapper')) {
-                    this.hidePersonelSuggestions();
-                }
             });
         }
 
@@ -209,47 +283,6 @@ const Vardiya = {
     },
 
     /**
-     * Personel önerilerini göster
-     */
-    showPersonelSuggestions: function(query) {
-        const suggestions = document.getElementById('personel-suggestions');
-        const allPersonel = ['Ahmet Yılmaz', 'Mehmet Demir', 'Ayşe Kaya', 'Fatma Şahin', 'Mustafa Öz', 'Zeynep Çelik'];
-        
-        if (!query || query.length < 2) {
-            suggestions.classList.remove('show');
-            return;
-        }
-
-        const filtered = allPersonel.filter(personel => 
-            personel.toLowerCase().includes(query.toLowerCase())
-        );
-
-        suggestions.innerHTML = '';
-        filtered.forEach(personel => {
-            const div = document.createElement('div');
-            div.className = 'personel-tag';
-            div.textContent = personel;
-            div.addEventListener('click', () => {
-                document.getElementById('sorumlu-personel').value = personel;
-                this.hidePersonelSuggestions();
-            });
-            suggestions.appendChild(div);
-        });
-
-        suggestions.classList.add('show');
-    },
-
-    /**
-     * Personel önerilerini gizle
-     */
-    hidePersonelSuggestions: function() {
-        const suggestions = document.getElementById('personel-suggestions');
-        if (suggestions) {
-            suggestions.classList.remove('show');
-        }
-    },
-
-    /**
      * Karakter sayacını güncelle
      */
     updateCharCount: function() {
@@ -308,18 +341,36 @@ const Vardiya = {
      * Vardiya kaydet
      */
     saveVardiya: async function() {
-        // ✅ Tarih kontrolü - aynı tarihte kayıt var mı?
+        // ✅ Tarih ve vardiya tipi kontrolü
         const vardiyaTarih = document.getElementById('vardiya-tarih').value;
+        const vardiyaTipi = document.getElementById('vardiya-tipi').value;
+        const saveBtn = document.getElementById('save-vardiya-btn');
+        
         if (!vardiyaTarih) {
             Utils.showToast('Lütfen tarih seçin', 'error');
             return;
         }
         
-        // Aynı tarihte kayıt var mı kontrol et
-        const storageKey = `vardiya-${vardiyaTarih}`;
+        if (!vardiyaTipi) {
+            Utils.showToast('Lütfen vardiya tipi seçin', 'error');
+            return;
+        }
+        
+        // Butonu devre dışı bırak
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.querySelector('.btn-text').textContent = 'Kaydediliyor...';
+        }
+        
+        // Aynı tarih ve vardiya tipinde kayıt var mı kontrol et
+        const storageKey = `vardiya-${vardiyaTarih}-${vardiyaTipi}`;
         const existingRecord = Utils.loadFromStorage(storageKey);
         if (existingRecord) {
-            Utils.showToast(`Bu tarihte (${vardiyaTarih}) zaten bir vardiya kaydı var!`, 'warning');
+            Utils.showToast(`Bu tarihte (${vardiyaTarih}) ${vardiyaTipi} vardiya kaydı zaten var!`, 'warning');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
+            }
             return;
         }
         
@@ -327,7 +378,8 @@ const Vardiya = {
             id: Date.now().toString(),
             tarih: vardiyaTarih,
             vardiya_tipi: document.getElementById('vardiya-tipi').value,
-            sorumlu_personel: document.getElementById('sorumlu-personel').value,
+            vardiya_personeli: document.getElementById('vardiya-personeli').value,
+            yardimci_personel: document.getElementById('yardimci-personel').value,
             isler: this.getSelectedIsler(),
             notlar: document.getElementById('vardiya-notlar').value,
             kayitZamani: CONFIG.formatDateTime(),
@@ -343,7 +395,7 @@ const Vardiya = {
 
         // Google Sheets'e gönder
         try {
-            const result = await GoogleSheetsAPI.addVardiyaRecord(formData);
+            const result = await this.sendToGoogleSheets(formData);
             if (result.success) {
                 Utils.showToast('Vardiya verileri Google Sheets\'e eklendi', 'success');
             } else {
@@ -353,10 +405,62 @@ const Vardiya = {
             Utils.showToast('Google Sheets hatası: ' + error.message, 'error');
         }
 
+        // ✅ Başarılı mesajı
+        Utils.showToast('Vardiya başarıyla kaydedildi', 'success');
+
+        // Formu temizle
+        document.getElementById('vardiya-form').reset();
+
         if (saveBtn) {
             saveBtn.disabled = false;
             saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
         }
+    },
+
+    /**
+     * Google Sheets'e veri gönder
+     */
+    sendToGoogleSheets: function(record) {
+        const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.vardiya;
+        
+        if (!url || url === 'BURAYA_VARDIYA_URL_GELECEK') {
+            console.log('❌ Vardiya URL\'si yapılandırılmamış');
+            return Promise.resolve({ success: false, error: 'URL yapılandırılmamış' });
+        }
+        
+        const formData = new FormData();
+        formData.append('action', 'save');
+        formData.append('module', 'vardiya');
+        formData.append('timestamp', new Date().toISOString());
+        
+        // Orijinal kayıt bilgileri ekle
+        const recordWithOriginal = {
+            ...record,
+            originalTimestamp: new Date().toISOString(),
+            originalPersonel: record.vardiya_personeli,
+            changes: ''
+        };
+        
+        // Verileri ekle
+        Object.keys(recordWithOriginal).forEach(key => {
+            formData.append(key, recordWithOriginal[key]);
+        });
+        
+        console.log('📤 Vardiya API\'ye gönderiliyor:', recordWithOriginal);
+        
+        return fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('✅ Vardiya API yanıtı:', data);
+            return data;
+        })
+        .catch(error => {
+            console.error('❌ Vardiya API hatası:', error);
+            return { success: false, error: error.toString() };
+        });
     },
 
     /**
@@ -367,13 +471,13 @@ const Vardiya = {
         const checkboxes = document.querySelectorAll('.isler-checklist input[type="checkbox"]:checked');
         
         checkboxes.forEach(checkbox => {
-            isler.push({
-                id: checkbox.id,
-                text: checkbox.nextElementSibling.textContent.trim()
-            });
+            // Sadece text içeriğini al, object değil
+            const isText = checkbox.nextElementSibling.textContent.trim();
+            isler.push(isText);
         });
 
-        return isler;
+        // Array'i string'e çevir (virgülle ayrılmış)
+        return isler.join(', ');
     },
 
     /**
