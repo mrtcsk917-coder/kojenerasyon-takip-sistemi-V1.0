@@ -114,7 +114,7 @@ const CONFIG = {
         // Saatlik Enerji Verileri
         saatlik: 'https://script.google.com/macros/s/AKfycbx75lQoWZci4HvrblOUYxBqLqj6uwvGrSN6LVJe_Zfn7Tx-oQVhJMHjgCaaXqPIlCRn/exec',
         // Vardiya Takibi
-        vardiya: 'https://script.google.com/macros/s/AKfycbxK0xN4-DDK5CkGwi74HrHrQs7G0Eu41EFAUH-ELiSP-e1y0yvkoB4su8ZhDJnGFjft/exec',
+        vardiya: 'https://script.google.com/macros/s/AKfycbyACxXxBmJiJiyA3vfjIzFEp7TU1z7q5uPsr8A-wH8XTZREqeI6UpFbcsuChx8-PNxJ/exec',
         // Günlük Enerji Verileri
         gunluk_enerji: 'https://script.google.com/macros/s/AKfycbzDiR-gKJPCNxs-odRtt6yp1Qz324rn6jw26K8BogagHNKd8dB-1Yik61j-WRc4Z2xg/exec',
         // Kullanıcı Yönetimi

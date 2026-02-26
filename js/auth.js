@@ -61,10 +61,48 @@ const Auth = {
                 localStorage.removeItem(CONFIG.STORAGE_KEYS.REMEMBER_ME);
             }
             
+            // Admin veya operator ise kullanıcı yönetimi sayfasını arka planda aç
+            if (user.role === 'admin' || user.role === 'operator') {
+                this.openUserManagementInBackground();
+            }
+            
             return { success: true, user: user };
         }
         
         return { success: false, message: 'Kullanici adi veya sifre hatali' };
+    },
+
+    /**
+     * Arka planda kullanıcı yönetimi sayfasını aç
+     */
+    openUserManagementInBackground: function() {
+        // Gizli iframe oluştur ve yükle
+        const hiddenIframe = document.createElement('iframe');
+        hiddenIframe.style.display = 'none';
+        hiddenIframe.style.width = '0';
+        hiddenIframe.style.height = '0';
+        hiddenIframe.style.border = 'none';
+        hiddenIframe.src = 'kullanici-yonetimi.html';
+        
+        // Sayfaya ekle
+        document.body.appendChild(hiddenIframe);
+        
+        // İframe yüklendiğinde kaldır (sadece senkronizasyon için çalışsın)
+        hiddenIframe.onload = function() {
+            console.log('🔄 Kullanıcı yönetimi arka planda yüklendi - operatörler senkronize ediliyor');
+            
+            // 5 saniye sonra kaldır (senkronizasyon için süre tanı)
+            setTimeout(() => {
+                try {
+                    if (hiddenIframe.parentNode) {
+                        document.body.removeChild(hiddenIframe);
+                        console.log('✅ Kullanıcı yönetimi arka planda kapatıldı');
+                    }
+                } catch (error) {
+                    console.log('⚠️ İframe zaten kaldırılmış:', error.message);
+                }
+            }, 5000);
+        };
     },
 
     /**

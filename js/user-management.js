@@ -177,7 +177,10 @@ const UserManagement = {
         try {
             // Önce localStorage'dan yükle ve normalize et
             const localUsers = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
-            this.users = localUsers.map(u => this.normalizeUserData(u));
+            let allUsers = localUsers.map(u => this.normalizeUserData(u));
+            
+            // Sadece operator rolündeki kullanıcıları filtrele
+            this.users = allUsers.filter(u => u.role === 'operator');
             this.filteredUsers = [...this.users];
             this.renderTable();
             this.updateStats();
@@ -187,7 +190,7 @@ const UserManagement = {
                 const result = await UserAPI.getAllUsers();
                 
                 if (result.success && result.users) {
-                    this.users = result.users.map(u => {
+                    let allApiUsers = result.users.map(u => {
                         const normalized = this.normalizeUserData(u);
                         // Eski yonetici rolunu admin olarak degistir
                         if (normalized.role === 'yonetici') {
@@ -195,6 +198,9 @@ const UserManagement = {
                         }
                         return normalized;
                     });
+                    
+                    // Sadece operator'leri filtrele
+                    this.users = allApiUsers.filter(u => u.role === 'operator');
                     this.filteredUsers = [...this.users];
                     this.renderTable();
                     this.updateStats();

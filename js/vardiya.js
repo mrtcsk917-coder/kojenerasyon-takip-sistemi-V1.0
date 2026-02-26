@@ -19,7 +19,10 @@ const Vardiya = {
      * Otomatik tarih ayarla
      */
     setAutoDate: function() {
+        console.log('📅 Otomatik tarih ayarlama başlatılıyor...');
         const tarihInput = document.getElementById('vardiya-tarih');
+        console.log('📅 Tarih input elementi:', tarihInput);
+        
         if (tarihInput) {
             // Bugünün tarihini YYYY-MM-DD formatında ayarla
             const today = new Date();
@@ -28,14 +31,19 @@ const Vardiya = {
             const day = String(today.getDate()).padStart(2, '0');
             const formattedDate = `${year}-${month}-${day}`;
             
+            console.log('📅 Hesaplanan tarih:', formattedDate);
             tarihInput.value = formattedDate;
+            console.log('📅 Set edilen tarih:', tarihInput.value);
             
             // Auto-fill değerini de güncelle
             const autoDateEl = document.getElementById('auto-date');
             if (autoDateEl) {
                 const displayDate = CONFIG.formatDate(today);
                 autoDateEl.querySelector('.auto-filled-input').value = formattedDate;
+                console.log('📅 Auto-fill elementi güncellendi');
             }
+        } else {
+            console.log('❌ Tarih input elementi bulunamadı!');
         }
     },
 
@@ -269,16 +277,25 @@ const Vardiya = {
         const dateInput = document.getElementById('vardiya-tarih');
         const changeBtn = document.getElementById('change-date-btn');
         
+        console.log('🔅 Tarih değiştirme butonu tıklandı');
+        console.log('📅 Input elementi:', dateInput);
+        console.log('🔘 Buton elementi:', changeBtn);
+        console.log('🔒 Mevcut readOnly durumu:', dateInput ? dateInput.readOnly : 'input bulunamadı');
+        
         if (dateInput && changeBtn) {
             if (dateInput.readOnly) {
                 dateInput.readOnly = false;
                 dateInput.style.background = 'var(--input-bg)';
                 changeBtn.textContent = '🔒 Kilitle';
+                console.log('✅ Tarih inputu açıldı, artık değiştirilebilir');
             } else {
                 dateInput.readOnly = true;
                 dateInput.style.background = 'var(--bg-tertiary)';
                 changeBtn.textContent = '✏️ Değiştir';
+                console.log('🔒 Tarih inputu kilitlendi');
             }
+        } else {
+            console.log('❌ Elementler bulunamadı!');
         }
     },
 
