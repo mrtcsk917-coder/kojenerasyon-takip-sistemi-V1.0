@@ -27,7 +27,35 @@ const Auth = {
      * Kullanici listesini al
      */
     getUsers: function() {
-        return Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
+        let users = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
+        
+        // Eğer LocalStorage boşsa, Google Sheets'teki kullanıcıları ekle
+        if (users.length === 0) {
+            console.log('📋 LocalStorage boş, Google Sheets kullanıcıları ekleniyor...');
+            this.syncGoogleSheetsUsers();
+            users = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
+        }
+        
+        return users;
+    },
+
+    /**
+     * Google Sheets'teki kullanıcıları LocalStorage'a senkronize et
+     */
+    syncGoogleSheetsUsers: function() {
+        const googleSheetsUsers = [
+            { username: 'admin', password: 'admin123', name: 'Admin', role: 'admin' },
+            { username: 'operator', password: 'op123', name: 'Operator', role: 'operator' },
+            { username: 'user', password: 'user123', name: 'Normal Kullanıcı', role: 'user' },
+            { username: 'yakupcan', password: 'ykp123', name: 'YAKUP CAN CİN', role: 'operator' },
+            { username: 'ogun_sahin', password: 'ogn123', name: 'İBRAHİM OGÜN ŞAHİN', role: 'operator' },
+            { username: 'oguzhan_yaylalı', password: 'ogz123', name: 'OGUZHAN YAYLALI', role: 'operator' },
+            { username: 'altan_hunoğlu', password: 'alt123', name: 'ALTAN HUNOĞLU', role: 'operator' },
+            { username: 'murat_coskun', password: 'mrt145300..', name: 'MURAT COŞKUN', role: 'admin' }
+        ];
+        
+        Utils.saveToStorage(CONFIG.STORAGE_KEYS.USERS, googleSheetsUsers);
+        console.log('✅ Google Sheets kullanıcıları LocalStorage\'a eklendi:', googleSheetsUsers.length, 'kullanıcı');
     },
 
     /**
