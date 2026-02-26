@@ -25,7 +25,19 @@ const CONFIG = {
     DEFAULT_USERS: [
         { username: 'admin', password: 'admin123', name: 'Admin', role: 'admin' },
         { username: 'operator', password: 'op123', name: 'Operator', role: 'operator' },
+        { username: 'yakupcan', password: 'ykp123', name: 'YAKUP CAN CİN', role: 'operator' },
+        { username: 'ibrahimogun', password: 'ios123', name: 'İBRAHİM OĞUN ŞAHİN', role: 'operator' },
+        { username: 'oguzhan', password: 'oys123', name: 'OGUZHAN YAYLALI', role: 'operator' },
+        { username: 'altan', password: 'aths123', name: 'ALTAN HUNOĞLU', role: 'operator' },
         { username: 'user', password: 'user123', name: 'Normal Kullanici', role: 'user' }
+    ],
+
+    // Sabit operatör listesi (dropdown için)
+    FIXED_OPERATORS: [
+        'YAKUP CAN CİN',
+        'İBRAHİM OĞUN ŞAHİN', 
+        'OGUZHAN YAYLALI',
+        'ALTAN HUNOĞLU'
     ],
     
     // Tarih formatı yardımcı fonksiyonu (Türkçe format)
@@ -111,17 +123,11 @@ const CONFIG = {
     // Google Sheets Web App URL'leri (API Key gerekmez)
     GOOGLE_SHEETS_WEB_APP_URLS: {
         buhar: 'https://script.google.com/macros/s/AKfycbxi8N33CjAJRWmUfQDS4D9sy-97N0Op6Bz85i9jsIhYruNqfidC7dXoxmYFBNxun_QI/exec',
-        // Saatlik Enerji Verileri
         saatlik: 'https://script.google.com/macros/s/AKfycbx75lQoWZci4HvrblOUYxBqLqj6uwvGrSN6LVJe_Zfn7Tx-oQVhJMHjgCaaXqPIlCRn/exec',
-        // Vardiya Takibi
-        vardiya: 'https://script.google.com/macros/s/AKfycbyACxXxBmJiJiyA3vfjIzFEp7TU1z7q5uPsr8A-wH8XTZREqeI6UpFbcsuChx8-PNxJ/exec',
-        // Günlük Enerji Verileri
+        vardiya: 'https://script.google.com/macros/s/AKfycbzpoSksLkRVScW0_4PngnIibm_zfQhwyGXYl9YK7Z91g-gHYE9aadLprSILCwf65h2m/exec',
         gunluk_enerji: 'https://script.google.com/macros/s/AKfycbzDiR-gKJPCNxs-odRtt6yp1Qz324rn6jw26K8BogagHNKd8dB-1Yik61j-WRc4Z2xg/exec',
-        // Kullanıcı Yönetimi
         kullanici: 'https://script.google.com/macros/s/AKfycby13Gh9TCQ4P2m4M8iqCvU_WE8of3d0ZtmGUTDM8S-EKMOHguNBeBAj_Qn4Mlljf31Y/exec',
-        // YENI: Günlük Enerji (Yeni)
         gunluk_enerji_yeni: 'https://script.google.com/macros/s/AKfycbw-3C6Ulj7ou_rJ6rgmrKsalKRtE70xEUbKA8cH89JSmQAOmRPi6JAMxhSNsFpGNxUT/exec',
-        // YENI: Alternatif URL
         gunluk_enerji_alternatif: 'https://script.google.com/macros/s/AKfycbwhyJ15sDwLFF1dFj-B4Mw7mcu2rpRNLo25w8d3-NQyhpEQD_8UV8H782ty53hyF6bU/exec',
         // Diğer modüller geçici olarak devre dışı
         // kojen_motor: 'URL',

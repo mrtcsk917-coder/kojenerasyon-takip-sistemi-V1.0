@@ -19,43 +19,18 @@ const Auth = {
      * Operatör rolündeki kullanıcıları al
      */
     getOperators: function() {
-        const users = this.getUsers();
-        return users.filter(user => user.role === 'operator');
+        // Sabit operatör listesini kullan
+        return CONFIG.FIXED_OPERATORS.map(name => ({
+            name: name,
+            role: 'operator'
+        }));
     },
 
     /**
      * Kullanici listesini al
      */
     getUsers: function() {
-        let users = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
-        
-        // Eğer LocalStorage boşsa, Google Sheets'teki kullanıcıları ekle
-        if (users.length === 0) {
-            console.log('📋 LocalStorage boş, Google Sheets kullanıcıları ekleniyor...');
-            this.syncGoogleSheetsUsers();
-            users = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
-        }
-        
-        return users;
-    },
-
-    /**
-     * Google Sheets'teki kullanıcıları LocalStorage'a senkronize et
-     */
-    syncGoogleSheetsUsers: function() {
-        const googleSheetsUsers = [
-            { username: 'admin', password: 'admin123', name: 'Admin', role: 'admin' },
-            { username: 'operator', password: 'op123', name: 'Operator', role: 'operator' },
-            { username: 'user', password: 'user123', name: 'Normal Kullanıcı', role: 'user' },
-            { username: 'yakupcan', password: 'ykp123', name: 'YAKUP CAN CİN', role: 'operator' },
-            { username: 'ogun_sahin', password: 'ogn123', name: 'İBRAHİM OGÜN ŞAHİN', role: 'operator' },
-            { username: 'oguzhan_yaylalı', password: 'ogz123', name: 'OGUZHAN YAYLALI', role: 'operator' },
-            { username: 'altan_hunoğlu', password: 'alt123', name: 'ALTAN HUNOĞLU', role: 'operator' },
-            { username: 'murat_coskun', password: 'mrt145300..', name: 'MURAT COŞKUN', role: 'admin' }
-        ];
-        
-        Utils.saveToStorage(CONFIG.STORAGE_KEYS.USERS, googleSheetsUsers);
-        console.log('✅ Google Sheets kullanıcıları LocalStorage\'a eklendi:', googleSheetsUsers.length, 'kullanıcı');
+        return Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
     },
 
     /**
@@ -76,14 +51,8 @@ const Auth = {
      * Giris yap
      */
     login: function(username, password, rememberMe = false) {
-        console.log('🔐 Giriş denemesi:', username);
-        
-        // Önce localStorage'dan kullanıcıları yükle
         const users = this.getUsers();
-        console.log('👥 Mevcut kullanıcılar:', users);
-        
         const user = users.find(u => u.username === username && u.password === password);
-        console.log('🔍 Bulunan kullanıcı:', user);
         
         if (user) {
             // Oturum bilgilerini kaydet
@@ -95,48 +64,10 @@ const Auth = {
                 localStorage.removeItem(CONFIG.STORAGE_KEYS.REMEMBER_ME);
             }
             
-            // Admin veya operator ise kullanıcı yönetimi sayfasını arka planda aç
-            if (user.role === 'admin' || user.role === 'operator') {
-                this.openUserManagementInBackground();
-            }
-            
             return { success: true, user: user };
         }
         
         return { success: false, message: 'Kullanici adi veya sifre hatali' };
-    },
-
-    /**
-     * Arka planda kullanıcı yönetimi sayfasını aç
-     */
-    openUserManagementInBackground: function() {
-        // Gizli iframe oluştur ve yükle
-        const hiddenIframe = document.createElement('iframe');
-        hiddenIframe.style.display = 'none';
-        hiddenIframe.style.width = '0';
-        hiddenIframe.style.height = '0';
-        hiddenIframe.style.border = 'none';
-        hiddenIframe.src = 'kullanici-yonetimi.html';
-        
-        // Sayfaya ekle
-        document.body.appendChild(hiddenIframe);
-        
-        // İframe yüklendiğinde kaldır (sadece senkronizasyon için çalışsın)
-        hiddenIframe.onload = function() {
-            console.log('🔄 Kullanıcı yönetimi arka planda yüklendi - operatörler senkronize ediliyor');
-            
-            // 5 saniye sonra kaldır (senkronizasyon için süre tanı)
-            setTimeout(() => {
-                try {
-                    if (hiddenIframe.parentNode) {
-                        document.body.removeChild(hiddenIframe);
-                        console.log('✅ Kullanıcı yönetimi arka planda kapatıldı');
-                    }
-                } catch (error) {
-                    console.log('⚠️ İframe zaten kaldırılmış:', error.message);
-                }
-            }, 5000);
-        };
     },
 
     /**

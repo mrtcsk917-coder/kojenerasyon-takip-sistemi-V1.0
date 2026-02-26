@@ -19,10 +19,7 @@ const Vardiya = {
      * Otomatik tarih ayarla
      */
     setAutoDate: function() {
-        console.log('📅 Otomatik tarih ayarlama başlatılıyor...');
         const tarihInput = document.getElementById('vardiya-tarih');
-        console.log('📅 Tarih input elementi:', tarihInput);
-        
         if (tarihInput) {
             // Bugünün tarihini YYYY-MM-DD formatında ayarla
             const today = new Date();
@@ -31,19 +28,18 @@ const Vardiya = {
             const day = String(today.getDate()).padStart(2, '0');
             const formattedDate = `${year}-${month}-${day}`;
             
-            console.log('📅 Hesaplanan tarih:', formattedDate);
+            console.log('📅 Otomatik tarih ayarlanıyor:', formattedDate); // Debug
             tarihInput.value = formattedDate;
-            console.log('📅 Set edilen tarih:', tarihInput.value);
             
             // Auto-fill değerini de güncelle
             const autoDateEl = document.getElementById('auto-date');
             if (autoDateEl) {
-                const displayDate = CONFIG.formatDate(today);
-                autoDateEl.querySelector('.auto-filled-input').value = formattedDate;
-                console.log('📅 Auto-fill elementi güncellendi');
+                const autoInput = autoDateEl.querySelector('.auto-filled-input');
+                if (autoInput) {
+                    autoInput.value = formattedDate;
+                    console.log('📅 Auto-fill input güncellendi:', autoInput.value); // Debug
+                }
             }
-        } else {
-            console.log('❌ Tarih input elementi bulunamadı!');
         }
     },
 
@@ -277,25 +273,16 @@ const Vardiya = {
         const dateInput = document.getElementById('vardiya-tarih');
         const changeBtn = document.getElementById('change-date-btn');
         
-        console.log('🔅 Tarih değiştirme butonu tıklandı');
-        console.log('📅 Input elementi:', dateInput);
-        console.log('🔘 Buton elementi:', changeBtn);
-        console.log('🔒 Mevcut readOnly durumu:', dateInput ? dateInput.readOnly : 'input bulunamadı');
-        
         if (dateInput && changeBtn) {
             if (dateInput.readOnly) {
                 dateInput.readOnly = false;
                 dateInput.style.background = 'var(--input-bg)';
                 changeBtn.textContent = '🔒 Kilitle';
-                console.log('✅ Tarih inputu açıldı, artık değiştirilebilir');
             } else {
                 dateInput.readOnly = true;
                 dateInput.style.background = 'var(--bg-tertiary)';
                 changeBtn.textContent = '✏️ Değiştir';
-                console.log('🔒 Tarih inputu kilitlendi');
             }
-        } else {
-            console.log('❌ Elementler bulunamadı!');
         }
     },
 
@@ -359,11 +346,25 @@ const Vardiya = {
      */
     saveVardiya: async function() {
         // ✅ Tarih ve vardiya tipi kontrolü
-        const vardiyaTarih = document.getElementById('vardiya-tarih').value;
-        const vardiyaTipi = document.getElementById('vardiya-tipi').value;
+        const tarihInput = document.getElementById('vardiya-tarih');
+        const vardiyaTarih = tarihInput.value.trim();
+        const vardiyaTipi = document.getElementById('vardiya-tipi').value.trim();
         const saveBtn = document.getElementById('save-vardiya-btn');
         
-        if (!vardiyaTarih) {
+        console.log('📅 Form değerleri:', { 
+            tarihInput: vardiyaTarih, 
+            vardiyaTipi: vardiyaTipi,
+            tarihElement: tarihInput.value,
+            tarihReadOnly: tarihInput.readOnly
+        }); // Debug
+        
+        // Kullanıcının girdiği tarihi kullan (değiştirse bile)
+        const finalTarih = tarihInput.value.trim();
+        
+        // Tarihi ISO formatına çevir (API için)
+        const tarihForAPI = this.convertToISOFormat(finalTarih);
+        
+        if (!finalTarih) {
             Utils.showToast('Lütfen tarih seçin', 'error');
             return;
         }
@@ -373,6 +374,8 @@ const Vardiya = {
             return;
         }
         
+        console.log('📅 Kullanılacak tarih:', { gosterim: finalTarih, api: tarihForAPI }); // Debug
+        
         // Butonu devre dışı bırak
         if (saveBtn) {
             saveBtn.disabled = true;
@@ -380,10 +383,10 @@ const Vardiya = {
         }
         
         // Aynı tarih ve vardiya tipinde kayıt var mı kontrol et
-        const storageKey = `vardiya-${vardiyaTarih}-${vardiyaTipi}`;
+        const storageKey = `vardiya-${finalTarih}-${vardiyaTipi}`;
         const existingRecord = Utils.loadFromStorage(storageKey);
         if (existingRecord) {
-            Utils.showToast(`Bu tarihte (${vardiyaTarih}) ${vardiyaTipi} vardiya kaydı zaten var!`, 'warning');
+            Utils.showToast(`Bu tarihte (${finalTarih}) ${vardiyaTipi} vardiya kaydı zaten var!`, 'warning');
             if (saveBtn) {
                 saveBtn.disabled = false;
                 saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
@@ -393,7 +396,7 @@ const Vardiya = {
         
         const formData = {
             id: Date.now().toString(),
-            tarih: vardiyaTarih,
+            tarih: tarihForAPI,
             vardiya_tipi: document.getElementById('vardiya-tipi').value,
             vardiya_personeli: document.getElementById('vardiya-personeli').value,
             yardimci_personel: document.getElementById('yardimci-personel').value,
@@ -402,24 +405,53 @@ const Vardiya = {
             kayitZamani: CONFIG.formatDateTime(),
         };
         
-        // LocalStorage'a kaydet
-        const vardiyaData = Utils.loadFromStorage('vardiya_data', []);
-        vardiyaData.push(formData);
-        Utils.saveToStorage('vardiya_data', vardiyaData);
-        
-        // Ayrıca tarih bazlı kaydet (kontrol için)
-        Utils.saveToStorage(storageKey, formData);
+        // ✅ Önce Google Sheets'te duplicate kontrolü yap
+        console.log('🔍 Google Sheets kontrolü:', { tarih: tarihForAPI, vardiyaTipi: vardiyaTipi }); // Debug
+        try {
+            const googleSheetsCheck = await this.checkGoogleSheetsDuplicate(tarihForAPI, vardiyaTipi);
+            console.log('📊 Google Sheets kontrol sonucu:', googleSheetsCheck); // Debug
+            if (googleSheetsCheck.exists) {
+                Utils.showToast(`Google Sheets'te bu tarihte (${finalTarih}) ${googleSheetsCheck.vardiyaTipi} kaydı zaten var!`, 'warning');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
+                }
+                return;
+            }
+        } catch (error) {
+            console.log('⚠️ Google Sheets kontrolü yapılamadı, işlem iptal ediliyor');
+            Utils.showToast('Google Sheets bağlantısı hatası! Kayıt yapılamadı.', 'error');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
+            }
+            return;
+        }
 
-        // Google Sheets'e gönder
+        // ✅ Ana kayıt: Google Sheets'e gönder
         try {
             const result = await this.sendToGoogleSheets(formData);
             if (result.success) {
                 Utils.showToast('Vardiya verileri Google Sheets\'e eklendi', 'success');
+                
+                // ✅ Yedekleme: LocalStorage'a kaydet
+                this.backupToLocalStorage(formData, storageKey);
+                
             } else {
                 Utils.showToast('Google Sheets\'e eklenemedi: ' + result.error, 'error');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
+                }
+                return;
             }
         } catch (error) {
             Utils.showToast('Google Sheets hatası: ' + error.message, 'error');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
+            }
+            return;
         }
 
         // ✅ Başarılı mesajı
@@ -478,6 +510,113 @@ const Vardiya = {
             console.error('❌ Vardiya API hatası:', error);
             return { success: false, error: error.toString() };
         });
+    },
+
+    /**
+     * Tarihi ISO formatına çevir (YYYY-MM-DD)
+     */
+    convertToISOFormat: function(tarihStr) {
+        if (!tarihStr) return '';
+        
+        // Türkçe formatları destekle: DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY
+        const formats = [
+            /^(\d{2})\.(\d{2})\.(\d{4})$/,  // DD.MM.YYYY
+            /^(\d{2})\/(\d{2})\/(\d{4})$/,  // DD/MM/YYYY
+            /^(\d{2})-(\d{2})-(\d{4})$/,  // DD-MM-YYYY
+            /^(\d{4})-(\d{2})-(\d{2})$/   // YYYY-MM-DD (zaten doğru)
+        ];
+        
+        for (let format of formats) {
+            const match = tarihStr.match(format);
+            if (match) {
+                if (format === formats[3]) {
+                    // Zaten YYYY-MM-DD formatı (dördüncü format)
+                    return tarihStr;
+                } else {
+                    // DD.MM.YYYY veya DD/MM/YYYY formatı → YYYY-MM-DD
+                    const year = match[3];
+                    const month = match[2];
+                    const day = match[1];
+                    return `${year}-${month}-${day}`;
+                }
+            }
+        }
+        
+        return tarihStr; // Hata olursa orijinali geri döndür
+    },
+
+    /**
+     * LocalStorage'a yedekle
+     */
+    backupToLocalStorage: function(formData, storageKey) {
+        try {
+            // Ana vardiya listesine ekle
+            const vardiyaData = Utils.loadFromStorage('vardiya_data', []);
+            vardiyaData.push(formData);
+            Utils.saveToStorage('vardiya_data', vardiyaData);
+            
+            // Tarih bazlı yedekle (duplicate kontrol için)
+            Utils.saveToStorage(storageKey, formData);
+            
+            console.log('✅ Vardiya LocalStorage\'a yedeklendi:', formData.tarih, formData.vardiya_tipi);
+            
+        } catch (error) {
+            console.error('❌ LocalStorage yedekleme hatası:', error);
+        }
+    },
+
+    /**
+     * Google Sheets'te duplicate kontrolü yap
+     */
+    checkGoogleSheetsDuplicate: async function(tarih, vardiyaTipi) {
+        console.log('🔍 Google Sheets API çağrısı:', { tarih, vardiyaTipi }); // Debug
+        const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.vardiya;
+        
+        if (!url || url === 'BURAYA_VARDIYA_URL_GELECEK') {
+            console.log('❌ Vardiya URL yok'); // Debug
+            return { exists: false };
+        }
+        
+        try {
+            const formData = new FormData();
+            formData.append('action', 'get');
+            formData.append('module', 'vardiya');
+            formData.append('timestamp', new Date().toISOString());
+            
+            // Filtreleri ekle
+            const filters = {
+                tarih: tarih,
+                vardiya_tipi: vardiyaTipi
+            };
+            console.log('📤 Gönderilen filtreler:', filters); // Debug
+            formData.append('filters', JSON.stringify(filters));
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            console.log('📥 Google Sheets API yanıtı:', result); // Debug
+            
+            if (result.success && result.data && result.data.length > 0) {
+                // Kayıt var
+                const existingRecord = result.data[0];
+                console.log('✅ Mevcut kayıt bulundu:', existingRecord); // Debug
+                return {
+                    exists: true,
+                    vardiyaTipi: existingRecord['Vardiya Tipi'],
+                    record: existingRecord
+                };
+            }
+            
+            console.log('❌ Kayıt bulunamadı'); // Debug
+            return { exists: false };
+            
+        } catch (error) {
+            console.error('❌ Google Sheets kontrol hatası:', error);
+            return { exists: false };
+        }
     },
 
     /**

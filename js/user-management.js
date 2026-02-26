@@ -177,10 +177,7 @@ const UserManagement = {
         try {
             // Önce localStorage'dan yükle ve normalize et
             const localUsers = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
-            let allUsers = localUsers.map(u => this.normalizeUserData(u));
-            
-            // Sadece operator rolündeki kullanıcıları filtrele
-            this.users = allUsers.filter(u => u.role === 'operator');
+            this.users = localUsers.map(u => this.normalizeUserData(u));
             this.filteredUsers = [...this.users];
             this.renderTable();
             this.updateStats();
@@ -190,7 +187,7 @@ const UserManagement = {
                 const result = await UserAPI.getAllUsers();
                 
                 if (result.success && result.users) {
-                    let allApiUsers = result.users.map(u => {
+                    this.users = result.users.map(u => {
                         const normalized = this.normalizeUserData(u);
                         // Eski yonetici rolunu admin olarak degistir
                         if (normalized.role === 'yonetici') {
@@ -198,9 +195,6 @@ const UserManagement = {
                         }
                         return normalized;
                     });
-                    
-                    // Sadece operator'leri filtrele
-                    this.users = allApiUsers.filter(u => u.role === 'operator');
                     this.filteredUsers = [...this.users];
                     this.renderTable();
                     this.updateStats();
@@ -523,6 +517,9 @@ const UserManagement = {
             }
             
             if (result.success) {
+                // ✅ Google Sheets başarılı - LocalStorage'a da kaydet
+                this.saveUserToLocalStorage(userData);
+                
                 this.closeModal();
                 await this.loadUsers();
             } else {
@@ -534,6 +531,44 @@ const UserManagement = {
             this.showToast('❌ Kaydetme sirasinda hata olustu', 'error');
         } finally {
             this.showLoading(false);
+        }
+    },
+
+    /**
+     * Kullanıcıyı LocalStorage'a kaydet
+     */
+    saveUserToLocalStorage: function(userData) {
+        try {
+            // Mevcut kullanıcıları al
+            const users = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS, []);
+            
+            // Eğer düzenleme yapılmıyorsa, aynı kullanıcı adı var mı kontrol et
+            if (!this.editingUser) {
+                const existingUser = users.find(u => u.username === userData.username);
+                if (existingUser) {
+                    console.warn('⚠️ Bu kullanıcı adı LocalStorage\'da zaten var:', userData.username);
+                    return;
+                }
+            }
+            
+            // Kullanıcıyı ekle/güncelle
+            if (this.editingUser) {
+                // Güncelleme
+                const index = users.findIndex(u => u.id === userData.id);
+                if (index !== -1) {
+                    users[index] = userData;
+                }
+            } else {
+                // Yeni kullanıcı
+                users.push(userData);
+            }
+            
+            // Kaydet
+            Utils.saveToStorage(CONFIG.STORAGE_KEYS.USERS, users);
+            console.log('✅ Kullanıcı LocalStorage\'a kaydedildi:', userData.username);
+            
+        } catch (error) {
+            console.error('❌ LocalStorage kaydetme hatası:', error);
         }
     },
     

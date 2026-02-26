@@ -349,13 +349,22 @@ function getVardiyaRecords(sheet, filters = {}) {
     // Filtreleme
     if (filters.tarih) {
       records = records.filter(record => {
-        return record['Tarih'] === filters.tarih;
+        const recordDate = record['Tarih'] ? record['Tarih'].toString().replace(/\./g, '/').replace(/-/g, '/') : '';
+        const filterDate = filters.tarih.toString().replace(/\./g, '/').replace(/-/g, '/');
+        return recordDate === filterDate;
       });
     }
     
     if (filters.vardiya_tipi) {
       records = records.filter(record => {
-        return record['Vardiya Tipi'] === filters.vardiya_tipi;
+        // Gelen vardiya tipini normalize et
+        const vardiyaTipMap = {
+          'gece': 'Gece Vardiyası',
+          'gunduz': 'Gündüz Vardiyası',
+          'aksam': 'Akşam Vardiyası'
+        };
+        const normalizedFilter = vardiyaTipMap[filters.vardiya_tipi] || filters.vardiya_tipi;
+        return record['Vardiya Tipi'] === normalizedFilter;
       });
     }
     
