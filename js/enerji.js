@@ -337,6 +337,13 @@ const Enerji = {
      */
     loadGoogleSheetsRecords: async function() {
         try {
+            // Demo modu kontrolü
+            if (CONFIG.DEMO_MODE) {
+                console.log('📋 Demo mod aktif - Google Sheets bağlantısı atlanıyor');
+                Utils.showToast('Demo mod: Google Sheets bağlantısı devre dışı', 'info');
+                return;
+            }
+            
             const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.saatlik;
             if (!url || url === 'BURAYA_YENI_URL_GELECEK') {
                 console.log('❌ Saatlik enerji URL\'si yapılandırılmamış');
@@ -487,7 +494,9 @@ const Enerji = {
                     aktif,
                     reaktif,
                     updatedAt: new Date().toISOString(),
-                    editedBy: Auth.getCurrentUser()?.username || 'unknown'
+                    editedBy: Auth.getCurrentUser()?.username || 'unknown',
+                    // ✅ Değişiklik bilgisi
+                    changes: `Aktif: ${existingRecord.aktif} → ${aktif}, Reaktif: ${existingRecord.reaktif} → ${reaktif}`
                 };
 
                 action = 'update';
@@ -502,7 +511,11 @@ const Enerji = {
                     date: this.currentData.date,
                     shift: this.currentData.shift,
                     hour,
-                    operator: Auth.getCurrentUser()?.username || 'unknown'
+                    operator: Auth.getCurrentUser()?.username || 'unknown',
+                    // ✅ Orijinal kayıt bilgileri
+                    originalTimestamp: new Date().toISOString(),
+                    originalOperator: Auth.getCurrentUser()?.username || 'unknown',
+                    changes: ''
                 };
 
                 action = 'save';
@@ -806,6 +819,12 @@ const Enerji = {
      * API'ye veri gönder - Promise döndürür
      */
     sendToAPI: function(record, action = 'save') {
+        // Demo modu kontrolü
+        if (CONFIG.DEMO_MODE) {
+            console.log('📋 Demo mod aktif - API isteği atlanıyor');
+            return Promise.resolve({ skipped: true, reason: 'demo_mode' });
+        }
+        
         const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.saatlik;
         
         if (!url || url === 'BURAYA_YENI_URL_GELECEK') {
@@ -819,6 +838,9 @@ const Enerji = {
             hour: record.hour,
             aktif: record.aktif,
             reaktif: record.reaktif,
+            originalTimestamp: record.originalTimestamp,
+            originalOperator: record.originalOperator,
+            changes: record.changes,
             url: url
         });
         

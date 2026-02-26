@@ -112,7 +112,7 @@ const CONFIG = {
     GOOGLE_SHEETS_WEB_APP_URLS: {
         buhar: 'https://script.google.com/macros/s/AKfycbxi8N33CjAJRWmUfQDS4D9sy-97N0Op6Bz85i9jsIhYruNqfidC7dXoxmYFBNxun_QI/exec',
         // Saatlik Enerji Verileri
-        saatlik: 'https://script.google.com/macros/s/AKfycbxkSKwnicC7H0LV0ThP-IsjTQuHZobDlusyo_vqM5ZB7DSRrtcjyuqS23gakjMm2GHx/exec',
+        saatlik: 'https://script.google.com/macros/s/AKfycbx75lQoWZci4HvrblOUYxBqLqj6uwvGrSN6LVJe_Zfn7Tx-oQVhJMHjgCaaXqPIlCRn/exec',
         // Günlük Enerji Verileri
         gunluk_enerji: 'https://script.google.com/macros/s/AKfycbzDiR-gKJPCNxs-odRtt6yp1Qz324rn6jw26K8BogagHNKd8dB-1Yik61j-WRc4Z2xg/exec',
         // Kullanıcı Yönetimi
@@ -121,8 +121,6 @@ const CONFIG = {
         gunluk_enerji_yeni: 'https://script.google.com/macros/s/AKfycbw-3C6Ulj7ou_rJ6rgmrKsalKRtE70xEUbKA8cH89JSmQAOmRPi6JAMxhSNsFpGNxUT/exec',
         // YENI: Alternatif URL
         gunluk_enerji_alternatif: 'https://script.google.com/macros/s/AKfycbwhyJ15sDwLFF1dFj-B4Mw7mcu2rpRNLo25w8d3-NQyhpEQD_8UV8H782ty53hyF6bU/exec',
-        // Vardiya Takibi
-        vardiya: 'https://script.google.com/macros/s/AKfycbzVi8tAGX6cQAmo61xevhBEBfN8GTHNe0o5S3j0nS_LFxlLAxDU6b5J3cinzWnsyLrz/exec',
         // Diğer modüller geçici olarak devre dışı
         // kojen_motor: 'URL',
         // kojen_enerji: 'URL',

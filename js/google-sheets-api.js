@@ -6,63 +6,6 @@
 const GoogleSheetsAPI = {
     
     /**
-     * Vardiya kaydet
-     * @param {Object} vardiyaData - Vardiya verileri
-     */
-    addVardiyaRecord: async function(vardiyaData) {
-        try {
-            const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.vardiya;
-            if (!url) {
-                console.error('Vardiya Google Sheets URL bulunamadı');
-                return { success: false, error: 'Vardiya URL bulunamadı' };
-            }
-
-            const formData = new FormData();
-            formData.append('action', 'saveVardiya');
-            formData.append('data', JSON.stringify({
-                id: vardiyaData.id,
-                tarih: vardiyaData.tarih,
-                vardiyaTipi: vardiyaData.vardiya_tipi,
-                vardiyaPersonel: vardiyaData.vardiya_personel,
-                yardimciPersonel: vardiyaData.yardimci_personel || '',
-                yapilanIsler: vardiyaData.isler.map(i => i.text).join(', '),
-                notlar: vardiyaData.notlar
-            }));
-
-            // Timeout ve retry mekanizması
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 saniye timeout
-
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData,
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            console.log('Vardiya verisi başarıyla kaydedildi:', result);
-            
-            return result;
-
-        } catch (error) {
-            console.error('Vardiya kayıt hatası:', error);
-            
-            // Timeout veya network hatası için özel mesaj
-            if (error.name === 'AbortError') {
-                return { success: false, error: 'İnternet bağlantısı zaman aşımına uğradı. Kayıt senkronizasyon kuyruğuna alındı.' };
-            }
-            
-            return { success: false, error: error.message };
-        }
-    },
-
-    /**
      * Veri kaydet
      * @param {string} module - Modül adı (buhar, kojen_motor, kojen_enerji, vb.)
      * @param {Object} data - Kaydedilecek veri

@@ -1,14 +1,12 @@
 /**
  * SAATLIK ENERJI VERILERI ICIN GOOGLE SHEETS APP SCRIPT
- * Sadece saatlik enerji verileri için özel kod
+ * Tam entegrasyonlu versiyon
  * 
  * Kurulum:
- * 1. Yeni Google Sheets oluştur
- * 2. Apps Script -> New Project  
- * 3. Bu kodu yapıştır
- * 4. Deploy -> New Deployment
- * 5. Web App olarak yayınla
- * 6. URL'yi config.js'e saatlik olarak ekle
+ * 1. Bu kodu Apps Script'e yapıştır
+ * 2. Deploy -> New Deployment
+ * 3. Web App olarak yayınla
+ * 4. URL'yi config.js'e ekle
  */
 
 function doPost(e) {
@@ -32,7 +30,13 @@ function doPost(e) {
     };
     
     const sheetName = sheetNames[module] || 'Veriler';
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // ✅ Spreadsheet kontrolü - yoksa oluştur
+    let ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss) {
+      ss = SpreadsheetApp.create('Kojenerasyon Enerji Verileri');
+    }
+    
     let sheet = ss.getSheetByName(sheetName);
     
     // Sheet yoksa oluştur ve header'ları ekle
@@ -526,17 +530,14 @@ function getHourlyHeaders(sheet) {
 }
 
 /**
- * doGet - Test için (POST request simülasyonu)
+ * doGet - Test için
  */
 function doGet(e) {
-  // Test için örnek POST verisi
-  const testEvent = {
-    parameter: {
-      action: 'test',
-      module: 'saatlik',
-      timestamp: new Date().toISOString()
-    }
-  };
-  
-  return doPost(testEvent);
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    message: 'Saatlik Enerji Google Sheets App Script çalışıyor',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    module: 'saatlik-enerji'
+  })).setMimeType(ContentService.MimeType.JSON);
 }

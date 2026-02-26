@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kojenerasyon Takip ve Bakım Sistemi</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/user-management.css">
-    <link rel="stylesheet" href="css/vardiya-new.css">
+    <link rel="stylesheet" href="css/hourly-table.css">
     <link rel="stylesheet" href="css/daily-energy.css">
     <link rel="stylesheet" href="css/button-fix.css">
+    <link rel="stylesheet" href="css/vardiya.css">
     <link rel="stylesheet" href="css/kojen-motor.css">
     <link rel="stylesheet" href="css/kojen-enerji.css">
     <link rel="stylesheet" href="css/bakim-takip.css">
@@ -728,6 +728,7 @@
                                 <div class="yardimci-options">
                                     <label class="radio-option">
                                         <input type="radio" name="yardimci" value="var" id="yardimci-var">
+                                        <span class="radio-checkmark"></span>
                                         <span class="radio-label">
                                             ✅ Var
                                             <small class="option-desc">Ek vardıya personeli mevcut</small>
@@ -735,6 +736,7 @@
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="yardimci" value="yok" id="yardimci-yok" checked>
+                                        <span class="radio-checkmark"></span>
                                         <span class="radio-label">
                                             ❌ Yok
                                             <small class="option-desc">Sadece bir personel</small>
@@ -745,39 +747,31 @@
                                     <label class="form-label">
                                         👤 Yardımcı Personel
                                     </label>
-                                    <div class="personel-input-wrapper">
-                                        <select id="yardimci-personel" 
-                                               class="personel-select"
-                                               name="yardimci-personel">
-                                            <option value="">Yardımcı personel seçin...</option>
-                                            <!-- Dinamik olarak doldurulacak -->
-                                        </select>
-                                        <div class="personel-suggestions" id="yardimci-personel-suggestions">
-                                            <!-- Dinamik olarak gelecek -->
-                                        </div>
-                                    </div>
+                                    <input type="text" id="yardimci-personel" 
+                                           class="personel-input"
+                                           placeholder="Yardımcı personel adı soyadı giriniz...">
                                 </div>
                             </div>
 
-                            <!-- Vardiya Personel -->
+                            <!-- Sorumlu Personel -->
                             <div class="form-group">
                                 <label class="form-label">
-                                    👔 Vardiya Personel
+                                    👔 Sorumlu Personel
                                 </label>
                                 <div class="personel-input-wrapper">
-                                    <select id="vardiya" name="vardiya-personel"
-                                           class="personel-select"
+                                    <input type="text" id="sorumlu-personel" name="sorumlu-personel"
+                                           class="personel-input"
+                                           placeholder="Personel adı soyadı giriniz..."
                                            required>
-                                        <option value="">Personel seçin...</option>
-                                        <!-- Dinamik olarak doldurulacak -->
-                                    </select>
                                     <div class="personel-suggestions" id="personel-suggestions">
                                         <!-- Dinamik olarak gelecek -->
                                     </div>
                                 </div>
-                                <div class="recent-personel" id="recent-personel">
-                                    <small>Son giriş yapanlar: </small>
-                                    <!-- Dinamik olarak doldurulacak -->
+                                <div class="recent-personel">
+                                    <small>Son kullanılanlar: </small>
+                                    <span class="personel-tag" data-personel="Ahmet Yılmaz">Ahmet Yılmaz</span>
+                                    <span class="personel-tag" data-personel="Mehmet Demir">Mehmet Demir</span>
+                                    <span class="personel-tag" data-personel="Ayşe Kaya">Ayşe Kaya</span>
                                 </div>
                             </div>
 
@@ -790,25 +784,25 @@
                                     <div class="checklist-item">
                                         <input type="checkbox" id="is-normal">
                                         <label for="is-normal" class="checklist-label">
-                                             <span class="checklist-text">Vardıyada herhangi bir sorun yaşanmamıştır</span>
+                                            ✅ <span class="checklist-text">Vardıyada herhangi bir sorun yaşanmamıştır</span>
                                         </label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="is-bakim">
                                         <label for="is-bakim" class="checklist-label">
-                                             <span class="checklist-text">Rutin bakım yapıldı</span>
+                                            🔧 <span class="checklist-text">Rutin bakım yapıldı</span>
                                         </label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="is-ariza">
                                         <label for="is-ariza" class="checklist-label">
-                                             <span class="checklist-text">Arıza tespit edildi</span>
+                                            ⚠️ <span class="checklist-text">Arıza tespit edildi</span>
                                         </label>
                                     </div>
                                     <div class="checklist-item">
                                         <input type="checkbox" id="is-temizlik">
                                         <label for="is-temizlik" class="checklist-label">
-                                            <span class="checklist-text">Temizlik yapıldı</span>
+                                            🧹 <span class="checklist-text">Temizlik yapıldı</span>
                                         </label>
                                     </div>
                                     <div class="checklist-item">
@@ -841,6 +835,17 @@
                                 </div>
                             </div>
 
+                            <!-- Uyarı Mesajı -->
+                            <div class="warning-box" id="warning-box">
+                                <div class="warning-header">
+                                    ⚠️ <h4>Önemli Uyarı</h4>
+                                </div>
+                                <p class="warning-text">
+                                    Lütfen vardıya sonunda tüm işlemlerin doğru şekilde kaydedildiğinden emin olun. 
+                                    Eksik veya hatalı kayıtlar sistem güvenliğini etkileyebilir.
+                                </p>
+                            </div>
+
                             <!-- Kaydet Butonu -->
                             <div class="form-actions">
                                 <button type="submit" class="btn-primary vardiya-save-btn" id="save-vardiya-btn">
@@ -852,45 +857,6 @@
                                 <button type="button" class="btn-secondary" id="reset-form-btn">
                                     🔄 Formu Temizle
                                 </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Sağ Panel - Geçmiş Kayıtlar -->
-                    <div class="records-section">
-                        <div class="section-header">
-                            <h3>📚 Geçmiş Vardiya Kayıtları</h3>
-                            <p class="section-subtitle">Daha önceki vardiya kayıtlarını görüntüleyin</p>
-                        </div>
-
-                        <div class="records-header">
-                            <div class="filter-controls">
-                                <input type="text" id="filter-personel" class="filter-input" placeholder="Personel ara...">
-                                <select id="filter-shift" class="filter-select">
-                                    <option value="">Tüm Vardiyalar</option>
-                                    <option value="gece">Gece</option>
-                                    <option value="gunduz">Gündüz</option>
-                                    <option value="aksam">Akşam</option>
-                                </select>
-                                <button type="button" class="btn-filter" id="filter-btn">
-                                    🔍 Filtrele
-                                </button>
-                                <button type="button" class="btn-reset-filter" id="reset-filter-btn">
-                                    🔄 Sıfırla
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="vardiya-list" id="vardiya-list">
-                            <!-- Dinamik olarak doldurulacak -->
-                            <div class="empty-state">
-                                <i>📭</i>
-                                <h4>Henüz kayıt bulunmuyor</h4>
-                                <p>İlk vardiya kaydınızı oluşturmak için formu doldurun.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 </section>
 
             <!-- Kojen Motor Verileri Page -->
