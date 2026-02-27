@@ -8,10 +8,23 @@ const Auth = {
      * Kullanici listesini baslat
      */
     init: function() {
-        const users = Utils.loadFromStorage(CONFIG.STORAGE_KEYS.USERS);
+        // UserAPI'yi başlat
+        if (window.UserAPI) {
+            UserAPI.init();
+        }
+        
+        // Varsayılan kullanıcıları kontrol et (sadece hiç kullanıcı yoksa)
+        const users = this.getUsers();
         if (!users || users.length === 0) {
             // Varsayilan kullanicilari kaydet
             Utils.saveToStorage(CONFIG.STORAGE_KEYS.USERS, CONFIG.DEFAULT_USERS);
+            
+            // Google Sheets'e de kaydet
+            if (window.UserAPI && UserAPI.apiUrl) {
+                CONFIG.DEFAULT_USERS.forEach(user => {
+                    UserAPI.saveUser(user);
+                });
+            }
         }
     },
 
@@ -19,11 +32,29 @@ const Auth = {
      * Operatör rolündeki kullanıcıları al
      */
     getOperators: function() {
-        // Sabit operatör listesini kullan
-        return CONFIG.FIXED_OPERATORS.map(name => ({
-            name: name,
-            role: 'operator'
-        }));
+        // Önce UserAPI'den dene
+        if (window.UserAPI && UserAPI.isOnline) {
+            // Asenkron olduğu için Promise döndürebiliriz
+            // Ama şimdilik senkron çalışması için localStorage kullanalım
+        }
+        
+        // LocalStorage'dan operator rollü kullanıcıları getir
+        const users = this.getUsers();
+        const operators = users.filter(user => user.role === 'operator')
+            .map(user => ({
+                name: user.name || user.username,
+                role: 'operator'
+            }));
+        
+        // Eğer hiç operator yoksa sabit listeyi kullan
+        if (operators.length === 0 && window.CONFIG && CONFIG.FIXED_OPERATORS) {
+            return CONFIG.FIXED_OPERATORS.map(name => ({
+                name: name,
+                role: 'operator'
+            }));
+        }
+        
+        return operators;
     },
 
     /**
@@ -36,26 +67,82 @@ const Auth = {
     /**
      * Kullanici ekle
      */
-    addUser: function(user) {
+    /**
+ * Kullanici ekle
+ */
+    addUser: async function(user) {
         const users = this.getUsers();
+        
         // Ayni kullanici adi var mi kontrol et
         if (users.find(u => u.username === user.username)) {
             return { success: false, message: 'Bu kullanici adi zaten kayitli' };
         }
+        
+        // ID ekle
+        user.id = user.id || Date.now().toString();
+        
+        // LocalStorage'a kaydet
         users.push(user);
         Utils.saveToStorage(CONFIG.STORAGE_KEYS.USERS, users);
+        
+        // Google Sheets'e de kaydet (asenkron)
+        if (window.UserAPI && UserAPI.apiUrl) {
+            UserAPI.saveUser(user).then(result => {
+                if (result.success) {
+                    console.log('✅ Kullanici Google Sheets\'e de kaydedildi');
+                }
+            });
+        }
+        
         return { success: true, message: 'Kullanici eklendi' };
     },
 
     /**
      * Giris yap
      */
-    login: function(username, password, rememberMe = false) {
+    /**
+ * Giriş yap
+ */
+    login: async function(username, password, rememberMe = false) {
+        // UserAPI ile dene
+        if (window.UserAPI && UserAPI.apiUrl) {
+            try {
+                const result = await UserAPI.validateLogin(username, password);
+                
+                if (result.success) {
+                    // ✅ BAŞARILI - Oturum bilgilerini kaydet
+                    Utils.saveToStorage(CONFIG.STORAGE_KEYS.CURRENT_USER, result.user);
+                    
+                    if (rememberMe) {
+                        localStorage.setItem(CONFIG.STORAGE_KEYS.REMEMBER_ME, username);
+                    } else {
+                        localStorage.removeItem(CONFIG.STORAGE_KEYS.REMEMBER_ME);
+                    }
+                    
+                    // ✅ Toast'u BURADA göster (sadece 1 kere)
+                    Utils.showToast('Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
+                    
+                    setTimeout(() => {
+                        this.showApp();
+                    }, 500);
+                    
+                    return { success: true, user: result.user };
+                } else {
+                    // ❌ BAŞARISIZ
+                    Utils.showToast(result.message || 'Giriş başarısız', 'error');
+                    return { success: false, message: result.message || 'Giriş başarısız' };
+                }
+            } catch (error) {
+                console.warn('UserAPI login hatası, localStorage deneniyor:', error);
+                // LocalStorage'a düş
+            }
+        }
+        
+        // LocalStorage'dan dene (offline durumunda)
         const users = this.getUsers();
         const user = users.find(u => u.username === username && u.password === password);
         
         if (user) {
-            // Oturum bilgilerini kaydet
             Utils.saveToStorage(CONFIG.STORAGE_KEYS.CURRENT_USER, user);
             
             if (rememberMe) {
@@ -64,10 +151,12 @@ const Auth = {
                 localStorage.removeItem(CONFIG.STORAGE_KEYS.REMEMBER_ME);
             }
             
+            Utils.showToast('Giriş başarılı! (Offline mod)', 'success');
             return { success: true, user: user };
         }
         
-        return { success: false, message: 'Kullanici adi veya sifre hatali' };
+        Utils.showToast('Kullanıcı adı veya şifre hatalı', 'error');
+        return { success: false, message: 'Kullanıcı adı veya şifre hatalı', error: 'Kullanıcı adı veya şifre hatalı' };
     },
 
     /**
@@ -186,11 +275,14 @@ const Auth = {
         }
         
         // Sifre goster/gizle
-        if (togglePassword) {
+        if (togglePassword && passwordInput) {
             togglePassword.addEventListener('click', () => {
                 const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 passwordInput.setAttribute('type', type);
-                togglePassword.querySelector('.eye-icon').textContent = type === 'password' ? '👁️' : '🙈';
+                const eyeIcon = togglePassword.querySelector('.eye-icon');
+                if (eyeIcon) {
+                    eyeIcon.textContent = type === 'password' ? '👁️' : '🙈';
+                }
             });
         }
         
@@ -217,9 +309,9 @@ const Auth = {
             });
         }
         
-        // Giris formu submit
+        // Giris formu submit - ŞU ANDAKİ KODU:
         if (loginForm) {
-            loginForm.addEventListener('submit', (e) => {
+            loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 // Caps Lock kontrolü
@@ -232,16 +324,15 @@ const Auth = {
                 const password = document.getElementById('password').value;
                 const rememberMe = document.getElementById('remember-me').checked;
                 
-                const result = this.login(username, password, rememberMe);
+                // Login fonksiyonu zaten toast gösteriyor, burada tekrar gösterme
+                const result = await this.login(username, password, rememberMe);
                 
                 if (result.success) {
-                    Utils.showToast('Giris basarili! Yonlendiriliyorsunuz...', 'success');
                     setTimeout(() => {
                         this.showApp();
                     }, 500);
-                } else {
-                    Utils.showToast(result.message, 'error');
                 }
+                // Hata durumunda toast zaten login içinde gösterildi
             });
         }
         

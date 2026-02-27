@@ -124,7 +124,7 @@ const CONFIG = {
     GOOGLE_SHEETS_WEB_APP_URLS: {
         buhar: 'https://script.google.com/macros/s/AKfycbxi8N33CjAJRWmUfQDS4D9sy-97N0Op6Bz85i9jsIhYruNqfidC7dXoxmYFBNxun_QI/exec',
         saatlik: 'https://script.google.com/macros/s/AKfycbx75lQoWZci4HvrblOUYxBqLqj6uwvGrSN6LVJe_Zfn7Tx-oQVhJMHjgCaaXqPIlCRn/exec',
-        vardiya: 'https://script.google.com/macros/s/AKfycbzpoSksLkRVScW0_4PngnIibm_zfQhwyGXYl9YK7Z91g-gHYE9aadLprSILCwf65h2m/exec',
+        vardiya: 'https://script.google.com/macros/s/AKfycbwOvfOlpWoVBmw82MVfLjx5rO9NCFF6qhmfrorHXtltGhORPXv1z0BKTGtP95Xp9Jfb/exec',
         gunluk_enerji: 'https://script.google.com/macros/s/AKfycbzDiR-gKJPCNxs-odRtt6yp1Qz324rn6jw26K8BogagHNKd8dB-1Yik61j-WRc4Z2xg/exec',
         kullanici: 'https://script.google.com/macros/s/AKfycby13Gh9TCQ4P2m4M8iqCvU_WE8of3d0ZtmGUTDM8S-EKMOHguNBeBAj_Qn4Mlljf31Y/exec',
         gunluk_enerji_yeni: 'https://script.google.com/macros/s/AKfycbw-3C6Ulj7ou_rJ6rgmrKsalKRtE70xEUbKA8cH89JSmQAOmRPi6JAMxhSNsFpGNxUT/exec',

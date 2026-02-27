@@ -143,10 +143,12 @@ const Vardiya = {
         // Vardiya tipi değişimi
         const vardiyaTipi = document.getElementById('vardiya-tipi');
         if (vardiyaTipi) {
-            vardiyaTipi.addEventListener('change', () => {
+            vardiyaTipi.addEventListener('change', this.debounce(() => {
                 this.updateShiftInfo();
                 this.toggleYardimciSection();
-            });
+                // Vardiya tipi değişince hemen kontrol et
+                this.checkDuplicateOnChange();
+            }, 500));
         }
 
         // Yardımcı vardiya seçimi
@@ -336,8 +338,12 @@ const Vardiya = {
         const form = document.getElementById('vardiya-form');
         if (form) {
             form.reset();
+            
+            // SADECE 1 KEZ çağır
             this.setupAutoFill();
             this.updateCharCount();
+            
+            // Diğer setAutoDate'i KALDIR
         }
     },
 
@@ -411,7 +417,15 @@ const Vardiya = {
             const googleSheetsCheck = await this.checkGoogleSheetsDuplicate(tarihForAPI, vardiyaTipi);
             console.log('📊 Google Sheets kontrol sonucu:', googleSheetsCheck); // Debug
             if (googleSheetsCheck.exists) {
-                Utils.showToast(`Google Sheets'te bu tarihte (${finalTarih}) ${googleSheetsCheck.vardiyaTipi} kaydı zaten var!`, 'warning');
+                // Gelen vardiya tipini normalize et
+                const vardiyaTipMap = {
+                    'Gece Vardiyası': 'gece',
+                    'Gündüz Vardiyası': 'gunduz',
+                    'Akşam Vardiyası': 'aksam'
+                };
+                const normalizedVardiyaTipi = vardiyaTipMap[googleSheetsCheck.vardiyaTipi] || googleSheetsCheck.vardiyaTipi;
+                
+                Utils.showToast(`Google Sheets'te bu tarihte (${finalTarih}) ${normalizedVardiyaTipi} kaydı zaten var!`, 'warning');
                 if (saveBtn) {
                     saveBtn.disabled = false;
                     saveBtn.querySelector('.btn-text').textContent = 'Vardiyayı Kaydet';
@@ -434,8 +448,10 @@ const Vardiya = {
             if (result.success) {
                 Utils.showToast('Vardiya verileri Google Sheets\'e eklendi', 'success');
                 
-                // ✅ Yedekleme: LocalStorage'a kaydet
-                this.backupToLocalStorage(formData, storageKey);
+                // ✅ Yedekleme: LocalStorage'a kaydet (arkaplanda)
+                setTimeout(() => {
+                    this.backupToLocalStorage(formData, storageKey);
+                }, 0);
                 
             } else {
                 Utils.showToast('Google Sheets\'e eklenemedi: ' + result.error, 'error');
@@ -454,9 +470,6 @@ const Vardiya = {
             return;
         }
 
-        // ✅ Başarılı mesajı
-        Utils.showToast('Vardiya başarıyla kaydedildi', 'success');
-
         // Formu temizle
         document.getElementById('vardiya-form').reset();
 
@@ -469,7 +482,7 @@ const Vardiya = {
     /**
      * Google Sheets'e veri gönder
      */
-    sendToGoogleSheets: function(record) {
+    sendToGoogleSheets: async function(record) {
         const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.vardiya;
         
         if (!url || url === 'BURAYA_VARDIYA_URL_GELECEK') {
@@ -497,19 +510,20 @@ const Vardiya = {
         
         console.log('📤 Vardiya API\'ye gönderiliyor:', recordWithOriginal);
         
-        return fetch(url, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('✅ Vardiya API yanıtı:', data);
-            return data;
-        })
-        .catch(error => {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            console.log('✅ Vardiya API yanıtı:', result);
+            
+            return result;
+        } catch (error) {
             console.error('❌ Vardiya API hatası:', error);
             return { success: false, error: error.toString() };
-        });
+        }
     },
 
     /**
@@ -569,11 +583,22 @@ const Vardiya = {
      * Google Sheets'te duplicate kontrolü yap
      */
     checkGoogleSheetsDuplicate: async function(tarih, vardiyaTipi) {
-        console.log('🔍 Google Sheets API çağrısı:', { tarih, vardiyaTipi }); // Debug
+        console.log('🔍 Google Sheets API çağrısı:', { tarih, vardiyaTipi });
+        
+        // ✅ Önbellek kontrolü (30 saniye)
+        const cacheKey = `${tarih}-${vardiyaTipi}`;
+        if (this._lastCheckCache && this._lastCheckCache.has(cacheKey)) {
+            const cached = this._lastCheckCache.get(cacheKey);
+            if (Date.now() - cached.timestamp < 30000) {
+                console.log('📋 Cache kullanılıyor:', cacheKey);
+                return cached.result;
+            }
+        }
+        
         const url = CONFIG.GOOGLE_SHEETS_WEB_APP_URLS.vardiya;
         
         if (!url || url === 'BURAYA_VARDIYA_URL_GELECEK') {
-            console.log('❌ Vardiya URL yok'); // Debug
+            console.log('❌ Vardiya URL yok');
             return { exists: false };
         }
         
@@ -583,13 +608,11 @@ const Vardiya = {
             formData.append('module', 'vardiya');
             formData.append('timestamp', new Date().toISOString());
             
-            // Filtreleri ekle
-            const filters = {
-                tarih: tarih,
-                vardiya_tipi: vardiyaTipi
-            };
-            console.log('📤 Gönderilen filtreler:', filters); // Debug
-            formData.append('filters', JSON.stringify(filters));
+            // ✅ DÜZELTİLMİŞ: Filtreleri ayrı ayrı gönder, JSON.stringify yapma
+            formData.append('tarih', tarih);
+            formData.append('vardiya_tipi', vardiyaTipi);
+            
+            console.log('📤 Gönderilen filtreler:', { tarih, vardiya_tipi: vardiyaTipi });
             
             const response = await fetch(url, {
                 method: 'POST',
@@ -597,25 +620,143 @@ const Vardiya = {
             });
             
             const result = await response.json();
-            console.log('📥 Google Sheets API yanıtı:', result); // Debug
+            console.log('📥 Google Sheets API yanıtı:', result);
             
             if (result.success && result.data && result.data.length > 0) {
-                // Kayıt var
-                const existingRecord = result.data[0];
-                console.log('✅ Mevcut kayıt bulundu:', existingRecord); // Debug
-                return {
-                    exists: true,
-                    vardiyaTipi: existingRecord['Vardiya Tipi'],
-                    record: existingRecord
+                // Vardiya tipini normalize et
+                const normalizeVardiya = (vardiya) => {
+                    if (!vardiya) return '';
+                    const vardiyaStr = String(vardiya).toLowerCase().trim();
+                    if (vardiyaStr.includes('gündüz') || vardiyaStr === 'gunduz') return 'gunduz';
+                    if (vardiyaStr.includes('akşam') || vardiyaStr === 'aksam') return 'aksam';
+                    if (vardiyaStr.includes('gece')) return 'gece';
+                    return vardiyaStr;
                 };
+
+                // Gelen verideki tüm kayıtları kontrol et (sadece ilk değil)
+                for (const record of result.data) {
+                    const recordVardiyaTipi = record['Vardiya Tipi'] || record.vardiya_tipi || '';
+                    const normalizedRecordVardiya = normalizeVardiya(recordVardiyaTipi);
+                    const normalizedArananVardiya = normalizeVardiya(vardiyaTipi);
+                    
+                    console.log('� Karşılaştırma:', {
+                        recordTarih: record['Tarih'],
+                        arananTarih: tarih,
+                        recordVardiya: recordVardiyaTipi,
+                        recordVardiyaNormalized: normalizedRecordVardiya,
+                        arananVardiyaNormalized: normalizedArananVardiya,
+                        tarihEslesiyor: record['Tarih'] === tarih,
+                        vardiyaEslesiyor: normalizedRecordVardiya === normalizedArananVardiya
+                    });
+                    
+                    // Tarih VE vardiya tipi eşleşiyorsa
+                    if (record['Tarih'] === tarih && normalizedRecordVardiya === normalizedArananVardiya) {
+                        console.log('✅ Eşleşen kayıt bulundu:', record);
+                        
+                        // ✅ Cache'e kaydet
+                        this.setCache(cacheKey, {
+                            exists: true,
+                            vardiyaTipi: record['Vardiya Tipi'],
+                            record: record
+                        });
+                        
+                        return {
+                            exists: true,
+                            vardiyaTipi: record['Vardiya Tipi'],
+                            record: record
+                        };
+                    }
+                }
+                
+                console.log('❌ Eşleşen kayıt bulunamadı');
+                
+                // ✅ Cache'e kaydet
+                this.setCache(cacheKey, { exists: false });
+                
+                return { exists: false };
             }
             
-            console.log('❌ Kayıt bulunamadı'); // Debug
+            console.log('� Veri bulunamadı');
             return { exists: false };
             
         } catch (error) {
             console.error('❌ Google Sheets kontrol hatası:', error);
             return { exists: false };
+        }
+    },
+
+    /**
+     * Debounce fonksiyonu
+     */
+    debounce: function(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                timeout = null;
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    },
+
+    /**
+     * Vardiya değişiminde duplicate kontrolü yap
+     */
+    checkDuplicateOnChange: async function() {
+        const tarih = document.getElementById('vardiya-tarih').value;
+        const vardiyaTipi = document.getElementById('vardiya-tipi').value;
+        
+        if (tarih && vardiyaTipi) {
+            const check = await this.checkGoogleSheetsDuplicate(tarih, vardiyaTipi);
+            
+            const warningEl = document.getElementById('vardiya-duplicate-warning');
+            if (check.exists) {
+                // Vardiya tipini normalize et
+                const vardiyaTipMap = {
+                    'Gece Vardiyası': 'gece',
+                    'Gündüz Vardiyası': 'gunduz',
+                    'Akşam Vardiyası': 'aksam'
+                };
+                const normalizedVardiyaTipi = vardiyaTipMap[check.vardiyaTipi] || check.vardiyaTipi;
+                
+                // Uyarı göster
+                if (!warningEl) {
+                    const newWarning = document.createElement('div');
+                    newWarning.id = 'vardiya-duplicate-warning';
+                    newWarning.className = 'duplicate-warning';
+                    newWarning.innerHTML = `⚠️ Bu tarihte (${tarih}) ${normalizedVardiyaTipi} kaydı zaten var!`;
+                    document.getElementById('vardiya-form').prepend(newWarning);
+                } else {
+                    warningEl.innerHTML = `⚠️ Bu tarihte (${tarih}) ${normalizedVardiyaTipi} kaydı zaten var!`;
+                    warningEl.style.display = 'block';
+                }
+            } else {
+                if (warningEl) {
+                    warningEl.style.display = 'none';
+                }
+            }
+        }
+    },
+
+    /**
+     * Cache'i başlat
+     */
+    initCache: function() {
+        if (!this._lastCheckCache) {
+            this._lastCheckCache = new Map();
+        }
+    },
+
+    /**
+     * Cache'e sonuç kaydet
+     */
+    setCache: function(key, result) {
+        if (this._lastCheckCache) {
+            this._lastCheckCache.set(key, {
+                result: result,
+                timestamp: Date.now()
+            });
         }
     },
 

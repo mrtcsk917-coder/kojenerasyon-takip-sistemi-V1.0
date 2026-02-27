@@ -283,8 +283,15 @@ const UserAPI = {
      */
     validateLogin: async function(username, password) {
         try {
+            // Önce localStorage'dan kontrol et (hızlı için)
+            const localResult = this.validateLoginLocal(username, password);
+            if (localResult.success) {
+                console.log('✅ LocalStorage login basarili:', username);
+                return localResult;
+            }
+            
             if (!this.apiUrl) {
-                // API yoksa localStorage'dan doğrula
+                // API yoksa sadece localStorage'dan doğrula
                 return this.validateLoginLocal(username, password);
             }
             
@@ -300,7 +307,12 @@ const UserAPI = {
             const result = await response.json();
             
             if (result.success) {
-                console.log('✅ Login basarili:', username);
+                console.log('✅ API Login basarili:', username);
+            } else {
+                console.warn('❌ API Login basarisiz, LocalStorage deneniyor:', result.error || result.message || 'Bilinmeyen hata');
+                
+                // API başarısız olursa localStorage'dan dene
+                return this.validateLoginLocal(username, password);
             }
             
             return result;

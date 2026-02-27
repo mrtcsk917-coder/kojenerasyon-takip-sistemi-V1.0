@@ -121,11 +121,28 @@ function doPost(e) {
  */
 function saveVardiyaRecord(sheet, data) {
   try {
+    // ✅ Çoklu API çağrısını engelle
+    const globalLockKey = 'vardiya_global_save_lock';
+    const globalLock = CacheService.getPublicCache().get(globalLockKey);
+    
+    if (globalLock !== null) {
+      return {
+        success: false,
+        error: 'Lütfen bekleyin... Başka bir kayıt işlemi devam ediyor.',
+        lockActive: true
+      };
+    }
+    
+    // Global kilidi oluştur
+    CacheService.getPublicCache().put(globalLockKey, 'locked', 60); // 60 saniye
+    
     // Concurrency kontrolü
     const lockKey = sheet.getName() + '_save_lock';
     const lock = CacheService.getPublicCache().get(lockKey);
     
     if (lock !== null) {
+      // Global kilidi serbest bırak
+      CacheService.getPublicCache().remove(globalLockKey);
       return {
         success: false,
         error: 'Lütfen bekleyin... Başka bir kayıt işlemi devam ediyor.',
@@ -139,7 +156,7 @@ function saveVardiyaRecord(sheet, data) {
     // Headers'ı kontrol et
     const headers = getVardiyaHeaders(sheet);
     
-    // Aynı tarih ve vardiya tipinde veri kontrolü
+    // ✅ DÜZELTİLMİŞ: Aynı tarih ve vardiya tipinde veri kontrolü
     if (data.tarih && data.vardiya_tipi) {
       const existingData = sheet.getDataRange().getValues();
       const dateColumnIndex = headers.indexOf('Tarih');
@@ -153,28 +170,72 @@ function saveVardiyaRecord(sheet, data) {
       };
       const normalizedVardiyaTipi = vardiyaTipMap[data.vardiya_tipi] || data.vardiya_tipi;
       
+      console.log('🔍 Kontrol ediliyor:', { 
+        arananTarih: data.tarih, 
+        arananVardiya: normalizedVardiyaTipi 
+      });
+      
       if (existingData.length > 1) {
         // Header hariç diğer satırları kontrol et
         for (let i = 1; i < existingData.length; i++) {
           const existingDate = existingData[i][dateColumnIndex];
           const existingVardiyaTipi = existingData[i][vardiyaTipiColumnIndex];
           
-          // Tarih formatlarını normalize et
-          const normalizedExisting = existingDate ? existingDate.toString().replace(/\./g, '/').replace(/-/g, '/') : '';
-          const normalizedNew = data.tarih.replace(/\./g, '/').replace(/-/g, '/');
+          let normalizedExisting = '';
+          if (existingDate instanceof Date) {
+            // Date objesini YYYY-MM-DD formatına çevir
+            const year = existingDate.getFullYear();
+            const month = String(existingDate.getMonth() + 1).padStart(2, '0');
+            const day = String(existingDate.getDate()).padStart(2, '0');
+            normalizedExisting = `${year}-${month}-${day}`;
+          } else {
+            // String ise, tüm ayraçları standardize et
+            normalizedExisting = existingDate ? existingDate.toString()
+              .replace(/\./g, '-')
+              .replace(/\//g, '-')
+              .trim() : '';
+          }
           
-          if (existingDate && normalizedExisting === normalizedNew && existingVardiyaTipi === normalizedVardiyaTipi) {
+          // Gelen tarihi standardize et
+          const normalizedNew = data.tarih.toString()
+            .replace(/\./g, '-')
+            .replace(/\//g, '-')
+            .trim();
+          
+          console.log('📊 Karşılaştırma:', {
+            satir: i,
+            existingDate: existingDate,
+            normalizedExisting: normalizedExisting,
+            normalizedNew: normalizedNew,
+            existingVardiyaTipi: existingVardiyaTipi,
+            normalizedVardiyaTipi: normalizedVardiyaTipi,
+            tarihEslesiyor: normalizedExisting === normalizedNew,
+            vardiyaEslesiyor: existingVardiyaTipi === normalizedVardiyaTipi
+          });
+          
+          // Tarih VE vardiya tipi eşleşiyorsa
+          if (normalizedExisting && normalizedExisting === normalizedNew && 
+              existingVardiyaTipi === normalizedVardiyaTipi) {
+            
+            console.log('⚠️ ÇAKIŞMA BULUNDU!');
             // Kilidi serbest bırak
             CacheService.getPublicCache().remove(lockKey);
             
             return {
               success: false,
-              error: `Bu tarihte ${normalizedVardiyaTipi} vardiya kaydı zaten mevcut: ${data.tarih}`,
-              duplicateFound: true
+              error: `Bu tarihte (${data.tarih}) ${normalizedVardiyaTipi} kaydı zaten mevcut!`,
+              duplicateFound: true,
+              existingRecord: {
+                tarih: normalizedExisting,
+                vardiyaTipi: existingVardiyaTipi,
+                satir: i + 1
+              }
             };
           }
         }
       }
+      
+      console.log('✅ Çakışma bulunamadı, kayıt yapılabilir');
     }
     
     // Yeni satır olarak ekle
@@ -244,9 +305,11 @@ function saveVardiyaRecord(sheet, data) {
     });
     
     sheet.appendRow(newRow);
+    console.log('✅ Yeni kayıt eklendi:', newRow);
     
     // Kilidi serbest bırak
     CacheService.getPublicCache().remove(lockKey);
+    CacheService.getPublicCache().remove('vardiya_global_save_lock');
     
     return {
       success: true,
@@ -255,8 +318,10 @@ function saveVardiyaRecord(sheet, data) {
       timestamp: new Date().toISOString()
     };
   } catch (error) {
+    console.error('❌ Hata:', error.toString());
     // Hata durumunda kilidi serbest bırak
     CacheService.getPublicCache().remove(lockKey);
+    CacheService.getPublicCache().remove('vardiya_global_save_lock');
     
     return {
       success: false,
@@ -349,8 +414,8 @@ function getVardiyaRecords(sheet, filters = {}) {
     // Filtreleme
     if (filters.tarih) {
       records = records.filter(record => {
-        const recordDate = record['Tarih'] ? record['Tarih'].toString().replace(/\./g, '/').replace(/-/g, '/') : '';
-        const filterDate = filters.tarih.toString().replace(/\./g, '/').replace(/-/g, '/');
+        const recordDate = record['Tarih'] ? record['Tarih'].toString() : '';
+        const filterDate = filters.tarih.toString();
         return recordDate === filterDate;
       });
     }

@@ -144,6 +144,12 @@ const Utils = {
      * Toast mesajı gösterir
      */
     showToast: function(message, type = 'info', duration = 3000) {
+        // Message kontrolü
+        if (message === undefined || message === null) {
+            console.warn('Toast mesajı undefined, gösterilmiyor:', message);
+            return;
+        }
+        
         // Toast elementini kontrol et
         let toast = document.getElementById('toast');
         if (!toast) {

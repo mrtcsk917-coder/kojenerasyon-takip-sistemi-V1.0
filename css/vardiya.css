@@ -18,6 +18,17 @@
     overflow-y: auto;
 }
 
+/* Duplicate Warning */
+.duplicate-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
 /* Section Header */
 .section-header {
     margin-bottom: 24px;
